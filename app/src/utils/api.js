@@ -1,6 +1,4 @@
-﻿// Ganti BASE_URL dengan IP komputer kamu
-// Cara cek IP: buka CMD â†’ ketik ipconfig â†’ lihat IPv4 Address
-const BASE_URL = "http://192.168.110.238:5000";
+﻿const BASE_URL = "http://192.168.110.238:5000";
 
 export async function predictMalaria(formData) {
   const response = await fetch(`${BASE_URL}/predict`, {
