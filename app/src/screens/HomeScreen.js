@@ -24,7 +24,7 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Selamat datang 👋</Text>
+            <Text style={styles.greeting}>Selamat datang</Text>
             <Text style={styles.heading}>Deteksi <Text style={styles.headingAccent}>Malaria</Text>{"\n"}Lebih Awal</Text>
           </View>
           <View style={styles.headerIcon}>

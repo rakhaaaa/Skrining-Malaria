@@ -54,7 +54,7 @@ export default function FormScreen() {
       const payload = { sex, ...Object.fromEntries(FIELDS.map(f => [f.key, form[f.key]])) };
       const res = await predictMalaria(payload);
       const record = {
-        patientName: patientName.trim() || "Pasien Anonim",
+        patientName: patientName.trim() || "Pasien Anonim", sex, ...payload,
         result: res.result, confidence: res.confidence,
         proba_pos: res.proba_pos, proba_neg: res.proba_neg,
         date: new Date().toLocaleString("id-ID"),
