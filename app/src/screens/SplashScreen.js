@@ -22,7 +22,7 @@ export default function SplashScreen() {
         <View style={styles.iconWrapper}>
           <Ionicons name="medical" size={44} color="#B39DDB" />
         </View>
-        <Text style={styles.title}>Malaria<Text style={styles.titleAccent}>Check</Text></Text>
+        <Text style={styles.title}>Skrining <Text style={styles.titleAccent}>Malaria</Text></Text>
         <Text style={styles.subtitle}>Klasifikasi Penyakit Malaria menggunakan{"\n"}Light Gradient Boosting Machine (LightGBM)</Text>
         <View style={styles.pills}>
           <View style={[styles.pill, styles.pillGreen]}><Text style={styles.pillTextGreen}>Rakha Naufal Sujana - 535220006</Text></View>

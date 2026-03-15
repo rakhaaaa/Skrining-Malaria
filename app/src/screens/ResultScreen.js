@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -15,8 +15,8 @@ export default function ResultScreen() {
 
   const features = [
     { name: "Hemoglobin",      val: `${result.hemoglobin || "-"} g/dL`,    pct: Math.min((parseFloat(result.hemoglobin)||0) / 18 * 100, 100) },
-    { name: "Platelet Count",  val: `${result.platelet || "-"} ×10³`,      pct: Math.min((parseFloat(result.platelet)||0) / 400 * 100, 100) },
-    { name: "WBC Count",       val: `${result.wbc || "-"} ×10³`,           pct: Math.min((parseFloat(result.wbc)||0) / 12 * 100, 100) },
+    { name: "Platelet Count",  val: `${result.platelet || "-"} Ã—10Â³`,      pct: Math.min((parseFloat(result.platelet)||0) / 400 * 100, 100) },
+    { name: "WBC Count",       val: `${result.wbc || "-"} Ã—10Â³`,           pct: Math.min((parseFloat(result.wbc)||0) / 12 * 100, 100) },
     { name: "Neutrofil",       val: `${result.neutrophils || "-"}%`,       pct: Math.min(parseFloat(result.neutrophils)||0, 100) },
     { name: "Limfosit",        val: `${result.lymphocytes || "-"}%`,       pct: Math.min(parseFloat(result.lymphocytes)||0, 100) },
     { name: "RDW-CV",          val: `${result.rdwcv || "-"}%`,             pct: Math.min((parseFloat(result.rdwcv)||0) / 20 * 100, 100) },
@@ -65,7 +65,7 @@ export default function ResultScreen() {
         {/* Recommendation */}
         <View style={[styles.recCard, isPositive ? styles.recCardPos : styles.recCardNeg]}>
           <Text style={[styles.recTitle, { color }]}>
-            {isPositive ? "⚠️ Tindakan Segera Diperlukan" : "✅ Tidak Terindikasi Malaria"}
+            {isPositive ? "âš ï¸ Tindakan Segera Diperlukan" : "âœ… Tidak Terindikasi Malaria"}
           </Text>
           {isPositive ? (
             <>
@@ -78,14 +78,14 @@ export default function ResultScreen() {
             <>
               <RecStep num="1" text="Parameter darah tidak menunjukkan tanda-tanda infeksi malaria" color="#B39DDB" />
               <RecStep num="2" text="Jika gejala masih ada, pertimbangkan pemeriksaan untuk penyakit lain (DBD, Tifoid)" color="#B39DDB" />
-              <RecStep num="3" text="Tetap waspada jika berada di area endemis malaria — ulangi tes jika gejala berlanjut" color="#B39DDB" />
+              <RecStep num="3" text="Tetap waspada jika berada di area endemis malaria â€” ulangi tes jika gejala berlanjut" color="#B39DDB" />
             </>
           )}
         </View>
 
         {/* Feature List */}
         <View style={styles.card}>
-          <Text style={styles.cardHeader}>📊 Ringkasan Data Input</Text>
+          <Text style={styles.cardHeader}>ðŸ“Š Ringkasan Data Input</Text>
           {features.map((f, i) => (
             <View key={i} style={styles.featureRow}>
               <Text style={styles.featureName}>{f.name}</Text>
@@ -99,7 +99,7 @@ export default function ResultScreen() {
 
         {/* Patient Data */}
         <View style={styles.card}>
-          <Text style={styles.cardHeader}>👤 Data Pasien</Text>
+          <Text style={styles.cardHeader}>ðŸ‘¤ Data Pasien</Text>
           <DataRow label="Nama Pasien" value={result.patientName || "-"} />
           <DataRow label="Jenis Kelamin" value={result.sex || "-"} />
           <DataRow label="Usia" value={result.age ? `${result.age} Tahun` : "-"} />
@@ -188,7 +188,7 @@ function generateHTML(r) {
 
   return `<html><body style="font-family:Arial;padding:32px;background:#0A0F1E;color:#EEF2FF">
     <div style="text-align:center;margin-bottom:24px">
-      <h2 style="color:#B39DDB;margin:0">MalariaCheck</h2>
+      <h2 style="color:#B39DDB;margin:0">Skrining Malaria</h2>
       <p style="color:#7B87A6;margin:4px 0">Laporan Skrining Awal Malaria</p>
       <p style="color:#7B87A6;font-size:12px">Hari, Tanggal: ${tanggalStr}</p>
       <p style="color:#7B87A6;font-size:12px">Waktu: ${waktuStr}</p>
@@ -220,7 +220,7 @@ function generateHTML(r) {
       ${pencegahan.map(p => `<li style="margin-bottom:6px">${p}</li>`).join("")}
     </ul>
     <p style="text-align:center;color:#7B87A6;font-size:11px;margin-top:32px">
-      MalariaCheck - Universitas Tarumanagara 2026<br/>
+      Skrining Malaria - Universitas Tarumanagara 2026<br/>
       <em>Hasil ini bersifat pendukung, bukan pengganti diagnosis klinis.</em>
     </p>
   </body></html>`;

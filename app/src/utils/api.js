@@ -1,5 +1,5 @@
-// Ganti BASE_URL dengan IP komputer kamu
-// Cara cek IP: buka CMD → ketik ipconfig → lihat IPv4 Address
+﻿// Ganti BASE_URL dengan IP komputer kamu
+// Cara cek IP: buka CMD â†’ ketik ipconfig â†’ lihat IPv4 Address
 const BASE_URL = "http://192.168.110.238:9000";
 
 export async function predictMalaria(formData) {

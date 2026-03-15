@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -139,11 +139,11 @@ export default function HistoryScreen() {
                   </View>
                 )}
                 <View style={[styles.cardIcon, isPos ? styles.cardIconPos : styles.cardIconNeg]}>
-                  <Text style={{ fontSize: 20 }}>{isPos ? "🦟" : "✅"}</Text>
+                  <Text style={{ fontSize: 20 }}>{isPos ? "ðŸ¦Ÿ" : "âœ…"}</Text>
                 </View>
                 <View style={styles.cardInfo}>
                   <Text style={styles.cardName}>{item.patientName || "Pasien"}</Text>
-                  <Text style={styles.cardDate}>{item.date} · {item.sex === "Male" ? "L" : "P"} · {item.age} thn</Text>
+                  <Text style={styles.cardDate}>{item.date} Â· {item.sex === "Male" ? "L" : "P"} Â· {item.age} thn</Text>
                 </View>
                 <View style={styles.cardRight}>
                   <View style={[styles.badge, isPos ? styles.badgePos : styles.badgeNeg]}>
