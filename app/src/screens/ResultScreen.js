@@ -6,13 +6,18 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 
 export default function ResultScreen() {
+  // Ini dipakai untuk pindah halaman dan mengambil data dari halaman sebelumnya.
   const navigation = useNavigation();
   const route      = useRoute();
+  // Data hasil dikirim dari halaman form ke halaman ini.
   const result     = route.params?.result || {};
+  // Nilai ini dipakai untuk menentukan warna dan status hasil.
   const isPositive = result.result === "Positive";
   const color      = isPositive ? "#FF4F6B" : "#B39DDB";
   const bgColor    = isPositive ? "rgba(255,79,107,0.1)" : "rgba(179,157,219,0.08)";
+  const symptoms   = Array.isArray(result.symptoms) ? result.symptoms : [];
 
+  // Beberapa data input ditampilkan lagi dalam bentuk ringkasan.
   const features = [
     { name: "Hemoglobin",      val: `${result.hemoglobin || "-"} g/dL`,    pct: Math.min((parseFloat(result.hemoglobin)||0) / 18 * 100, 100) },
     { name: "Platelet Count",  val: `${result.platelet || "-"} ×10³`,      pct: Math.min((parseFloat(result.platelet)||0) / 400 * 100, 100) },
@@ -24,6 +29,7 @@ export default function ResultScreen() {
 
   const handleDownloadPDF = async () => {
     try {
+      // Membuat laporan PDF lalu membukanya untuk dibagikan atau disimpan.
       const html = generateHTML(result);
       const { uri } = await Print.printToFileAsync({ html });
       await Sharing.shareAsync(uri, { mimeType: "application/pdf", dialogTitle: "Laporan Skrining Malaria" });
@@ -46,7 +52,7 @@ export default function ResultScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 160 }}>
 
-        {/* Result Ring */}
+        {/* Bagian ini menampilkan tingkat keyakinan dan hasil utama. */}
         <View style={[styles.resultHero, { backgroundColor: bgColor }]}>
           <View style={[styles.ring, { borderColor: color }]}>
             <Text style={[styles.ringPct, { color }]}>{result.confidence || "--"}%</Text>
@@ -62,7 +68,7 @@ export default function ResultScreen() {
           </Text>
         </View>
 
-        {/* Recommendation */}
+        {/* Bagian ini menampilkan saran sesuai hasil prediksi. */}
         <View style={[styles.recCard, isPositive ? styles.recCardPos : styles.recCardNeg]}>
           <Text style={[styles.recTitle, { color }]}>
             {isPositive ? "Tindakan Segera Diperlukan" : "Tidak Terindikasi Malaria"}
@@ -83,7 +89,7 @@ export default function ResultScreen() {
           )}
         </View>
 
-        {/* Feature List */}
+        {/* Bagian ini menampilkan ringkasan data input. */}
         <View style={styles.card}>
           <Text style={styles.cardHeader}>Ringkasan Data Input</Text>
           {features.map((f, i) => (
@@ -97,7 +103,7 @@ export default function ResultScreen() {
           ))}
         </View>
 
-        {/* Patient Data */}
+        {/* Bagian ini menampilkan data dasar pasien. */}
         <View style={styles.card}>
           <Text style={styles.cardHeader}>Data Pasien</Text>
           <DataRow label="Nama Pasien" value={result.patientName || "-"} />
@@ -106,10 +112,26 @@ export default function ResultScreen() {
           <DataRow label="Tanggal" value={result.date || "-"} />
         </View>
 
+        <View style={styles.card}>
+          <Text style={styles.cardHeader}>Gejala Pasien</Text>
+          {symptoms.length > 0 ? (
+            <View style={styles.symptomList}>
+              {symptoms.map(symptom => (
+                <View key={symptom} style={styles.symptomItem}>
+                  <Ionicons name="checkmark-circle" size={16} color={color} />
+                  <Text style={styles.symptomText}>{symptom}</Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.emptySymptoms}>Tidak ada gejala yang dipilih.</Text>
+          )}
+        </View>
+
 
       </ScrollView>
 
-      {/* Fixed Bottom */}
+      {/* Tombol utama setelah hasil keluar diletakkan di bagian bawah. */}
       <View style={styles.fixedBottom}>
         <View style={styles.btnRow}>
           <TouchableOpacity style={styles.btnPrimary} onPress={handleDownloadPDF} activeOpacity={0.85}>
@@ -130,6 +152,7 @@ export default function ResultScreen() {
 }
 
 function RecStep({ num, text, color }) {
+  // Bagian kecil ini dipakai untuk menampilkan satu poin saran.
   return (
     <View style={styles.recStep}>
       <View style={[styles.recNum, { backgroundColor: color + "20" }]}>
@@ -141,6 +164,7 @@ function RecStep({ num, text, color }) {
 }
 
 function DataRow({ label, value }) {
+  // Bagian kecil ini dipakai untuk menampilkan label dan nilainya.
   return (
     <View style={styles.dataRow}>
       <Text style={styles.dataLabel}>{label}</Text>
@@ -150,8 +174,10 @@ function DataRow({ label, value }) {
 }
 
 function generateHTML(r) {
+  // Fungsi ini membuat isi laporan PDF.
   const isPos = r.result === "Positive";
   const color = isPos ? "#FF4F6B" : "#B39DDB";
+  const symptoms = Array.isArray(r.symptoms) ? r.symptoms : [];
 
   const now = new Date();
   const hariList = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
@@ -211,6 +237,10 @@ function generateHTML(r) {
         <td style="padding:8px 12px;border:1px solid rgba(255,255,255,0.07)">${v||"-"}</td>
       </tr>`).join("")}
     </table>
+    <h3 style="color:#EEF2FF;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:8px;margin-top:24px">Gejala Pasien</h3>
+    ${symptoms.length > 0
+      ? `<ul style="color:#7B87A6;font-size:13px;line-height:1.8;padding-left:20px">${symptoms.map(item => `<li style="margin-bottom:6px">${item}</li>`).join("")}</ul>`
+      : `<p style="color:#7B87A6;font-size:13px">Tidak ada gejala yang dipilih.</p>`}
     <h3 style="color:#EEF2FF;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:8px;margin-top:24px">${isPos ? "Tindakan yang Disarankan" : "Rekomendasi"}</h3>
     <ul style="color:#7B87A6;font-size:13px;line-height:1.8;padding-left:20px">
       ${rekom.map(item => `<li style="margin-bottom:6px">${item}</li>`).join("")}
@@ -255,6 +285,10 @@ const styles = StyleSheet.create({
   dataRow:        { flexDirection: "row", justifyContent: "space-between", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)" },
   dataLabel:      { fontSize: 13, color: "#7B87A6" },
   dataValue:      { fontSize: 13, fontWeight: "600", color: "#EEF2FF" },
+  symptomList:    { gap: 10 },
+  symptomItem:    { flexDirection: "row", alignItems: "center", gap: 10 },
+  symptomText:    { flex: 1, fontSize: 13, color: "#EEF2FF", lineHeight: 20 },
+  emptySymptoms:  { fontSize: 13, color: "#7B87A6", lineHeight: 20 },
   modelInfo:      { flexDirection: "row", alignItems: "center", gap: 14, marginHorizontal: 20, backgroundColor: "#141B2D", borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: "rgba(0,184,255,0.15)" },
   modelIcon:      { width: 44, height: 44, borderRadius: 12, backgroundColor: "rgba(0,184,255,0.1)", alignItems: "center", justifyContent: "center" },
   modelName:      { fontSize: 13, fontWeight: "700", color: "#EEF2FF" },

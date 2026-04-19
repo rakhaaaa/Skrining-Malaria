@@ -1,5 +1,5 @@
 # MalariaCheck — Aplikasi Skrining Malaria
-Rakha Naufal Sujana · NPM 535220006 · Universitas Tarumanagara 2026
+Rakha Naufal Sujana · NPM 535220006 · Universitas Tarumanagara
 
 ## LANGKAH 1 — Jalankan Backend (Flask)
 
@@ -8,6 +8,7 @@ Buka terminal di VSCode, masuk ke folder backend:
 ```bash
 cd backend
 pip install -r requirements.txt
+conda activate malaria
 python app.py
 ```
 
@@ -25,7 +26,7 @@ Backend berjalan di: `http://localhost:5000 // 8081 `
 2. Buka file `app/src/utils/api.js`
 3. Ganti baris:
    ```js
-   const BASE_URL = "http://192.168.100.100:5000";
+   const BASE_URL = "http://192.1.10.100:8081"; // contoh
    ```
    Dengan IP komputer kamu.
 
@@ -60,18 +61,6 @@ Setelah QR code muncul:
 npx expo start --web
 ```
 Buka `http://localhost:8081` di browser.
-
----
-
-## Fitur Aplikasi
-
-| Layar           | Deskripsi                                          |
-|-----------------|----------------------------------------------------|
-| Splash Screen   | Tampilan pembuka dengan logo dan nama aplikasi     |
-| Beranda         | Navigasi utama + riwayat terbaru                   |
-| Form Input      | Input 12 parameter (2 demografis + 10 hematologi)  |
-| Hasil Klasifikasi | Hasil Positive/Negative + probabilitas + PDF    |
-| Riwayat         | Daftar semua hasil skrining yang tersimpan         |
 
 ---
 

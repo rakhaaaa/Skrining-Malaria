@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Local environment/config
+.env
+.env.*
+!.env.example
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Machine learning generated output / local datasets
+catboost_info/
+*.ipynb_checkpoints/
+backend/Dataset Malaria.csv
+backend/SKRIPSI_RAKHA_NAUFAL_535220006_REVISIAN.ipynb
+backend/best_model_catboost_meta.pkl
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
