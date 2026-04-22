@@ -103,15 +103,6 @@ export default function ResultScreen() {
           ))}
         </View>
 
-        {/* Bagian ini menampilkan data dasar pasien. */}
-        <View style={styles.card}>
-          <Text style={styles.cardHeader}>Data Pasien</Text>
-          <DataRow label="Nama Pasien" value={result.patientName || "-"} />
-          <DataRow label="Jenis Kelamin" value={result.sex || "-"} />
-          <DataRow label="Usia" value={result.age ? `${result.age} Tahun` : "-"} />
-          <DataRow label="Tanggal" value={result.date || "-"} />
-        </View>
-
         <View style={styles.card}>
           <Text style={styles.cardHeader}>Gejala Pasien</Text>
           {symptoms.length > 0 ? (
@@ -126,6 +117,15 @@ export default function ResultScreen() {
           ) : (
             <Text style={styles.emptySymptoms}>Tidak ada gejala yang dipilih.</Text>
           )}
+        </View>
+
+        {/* Bagian ini menampilkan data dasar pasien. */}
+        <View style={styles.card}>
+          <Text style={styles.cardHeader}>Data Pasien</Text>
+          <DataRow label="Nama Pasien" value={result.patientName || "-"} />
+          <DataRow label="Jenis Kelamin" value={result.sex || "-"} />
+          <DataRow label="Usia" value={result.age ? `${result.age} Tahun` : "-"} />
+          <DataRow label="Tanggal" value={result.date || "-"} />
         </View>
 
 
