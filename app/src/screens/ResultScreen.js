@@ -20,8 +20,8 @@ export default function ResultScreen() {
   // Beberapa data input ditampilkan lagi dalam bentuk ringkasan.
   const features = [
     { name: "Hemoglobin",      val: `${result.hemoglobin || "-"} g/dL`,    pct: Math.min((parseFloat(result.hemoglobin)||0) / 18 * 100, 100) },
-    { name: "Platelet Count",  val: `${result.platelet || "-"} ×10³`,      pct: Math.min((parseFloat(result.platelet)||0) / 400 * 100, 100) },
-    { name: "WBC Count",       val: `${result.wbc || "-"} ×10³`,           pct: Math.min((parseFloat(result.wbc)||0) / 12 * 100, 100) },
+    { name: "Platelet Count",  val: `${result.platelet || "-"} x10^3`,      pct: Math.min((parseFloat(result.platelet)||0) / 400 * 100, 100) },
+    { name: "WBC Count",       val: `${result.wbc || "-"} x10^3`,           pct: Math.min((parseFloat(result.wbc)||0) / 12 * 100, 100) },
     { name: "Neutrofil",       val: `${result.neutrophils || "-"}%`,       pct: Math.min(parseFloat(result.neutrophils)||0, 100) },
     { name: "Limfosit",        val: `${result.lymphocytes || "-"}%`,       pct: Math.min(parseFloat(result.lymphocytes)||0, 100) },
     { name: "RDW-CV",          val: `${result.rdwcv || "-"}%`,             pct: Math.min((parseFloat(result.rdwcv)||0) / 20 * 100, 100) },
@@ -84,7 +84,7 @@ export default function ResultScreen() {
             <>
               <RecStep num="1" text="Parameter darah tidak menunjukkan tanda-tanda infeksi malaria" color="#B39DDB" />
               <RecStep num="2" text="Jika gejala masih ada, pertimbangkan pemeriksaan untuk penyakit lain (DBD, Tifoid)" color="#B39DDB" />
-              <RecStep num="3" text="Tetap waspada jika berada di area endemis malaria — ulangi tes jika gejala berlanjut" color="#B39DDB" />
+              <RecStep num="3" text="Tetap waspada jika berada di area endemis malaria - ulangi tes jika gejala berlanjut" color="#B39DDB" />
             </>
           )}
         </View>

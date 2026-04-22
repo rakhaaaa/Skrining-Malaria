@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, StatusBar, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, StatusBar, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Image, Modal } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { loginUser, registerUser } from "../utils/api";
 import { saveSession } from "../utils/auth";
@@ -14,6 +14,13 @@ export default function LoginScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [messageModal, setMessageModal] = useState({
+    visible: false,
+    title: "",
+    message: "",
+    type: "error",
+    onClose: null,
+  });
 
   const isRegister = mode === "register";
 
@@ -32,9 +39,19 @@ export default function LoginScreen({ navigation }) {
     resetForm();
   };
 
+  const showMessage = ({ title, message, type = "error", onClose = null }) => {
+    setMessageModal({ visible: true, title, message, type, onClose });
+  };
+
+  const closeMessage = () => {
+    const onClose = messageModal.onClose;
+    setMessageModal(prev => ({ ...prev, visible: false, onClose: null }));
+    if (onClose) onClose();
+  };
+
   const handleLogin = async () => {
     if (!username.trim() || !password) {
-      Alert.alert("Data belum lengkap", "Isi username dan password terlebih dahulu.");
+      showMessage({ title: "Data belum lengkap", message: "Isi username dan password terlebih dahulu." });
       return;
     }
 
@@ -44,7 +61,7 @@ export default function LoginScreen({ navigation }) {
       await saveSession(session);
       navigation.reset({ index: 0, routes: [{ name: "Main" }] });
     } catch (error) {
-      Alert.alert("Login gagal", error.message);
+      showMessage({ title: "Login gagal", message: error.message });
     } finally {
       setLoading(false);
     }
@@ -52,11 +69,11 @@ export default function LoginScreen({ navigation }) {
 
   const handleRegister = async () => {
     if (!fullName.trim() || !username.trim() || !password || !confirmPassword) {
-      Alert.alert("Data belum lengkap", "Lengkapi semua data registrasi terlebih dahulu.");
+      showMessage({ title: "Data belum lengkap", message: "Lengkapi semua data registrasi terlebih dahulu." });
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert("Password tidak cocok", "Konfirmasi password harus sama dengan password.");
+      showMessage({ title: "Password tidak cocok", message: "Konfirmasi password harus sama dengan password." });
       return;
     }
 
@@ -68,12 +85,18 @@ export default function LoginScreen({ navigation }) {
         password,
         role: role.trim() || "Pengguna",
       });
-      Alert.alert("Registrasi berhasil", "Akun sudah dibuat. Silakan login.");
-      setMode("login");
-      setPassword("");
-      setConfirmPassword("");
+      showMessage({
+        title: "Registrasi berhasil",
+        message: "Akun sudah dibuat. Silakan login.",
+        type: "success",
+        onClose: () => {
+          setMode("login");
+          setPassword("");
+          setConfirmPassword("");
+        },
+      });
     } catch (error) {
-      Alert.alert("Registrasi gagal", error.message);
+      showMessage({ title: "Registrasi gagal", message: error.message });
     } finally {
       setLoading(false);
     }
@@ -85,7 +108,7 @@ export default function LoginScreen({ navigation }) {
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
           <View style={styles.logoBox}>
-            <Ionicons name="medical" size={36} color="#B39DDB" />
+            <Image source={require("../../assets/malaria.png")} style={styles.logoImg} />
           </View>
           <Text style={styles.title}>{isRegister ? "Registrasi Pengguna" : "Login Pengguna"}</Text>
           <Text style={styles.subtitle}>
@@ -185,6 +208,40 @@ export default function LoginScreen({ navigation }) {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal
+        transparent
+        visible={messageModal.visible}
+        animationType="fade"
+        onRequestClose={closeMessage}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.messageModal}>
+            <View style={[
+              styles.modalIcon,
+              messageModal.type === "success" ? styles.modalIconSuccess : styles.modalIconError,
+            ]}>
+              <Ionicons
+                name={messageModal.type === "success" ? "checkmark-circle-outline" : "alert-circle-outline"}
+                size={28}
+                color={messageModal.type === "success" ? "#B39DDB" : "#FF4F6B"}
+              />
+            </View>
+            <Text style={styles.modalTitle}>{messageModal.title}</Text>
+            <Text style={styles.modalDesc}>{messageModal.message}</Text>
+            <TouchableOpacity
+              style={[
+                styles.modalActionBtn,
+                messageModal.type === "success" ? styles.modalActionSuccess : styles.modalActionError,
+              ]}
+              onPress={closeMessage}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.modalActionText}>Mengerti</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -192,7 +249,8 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container:       { flex: 1, backgroundColor: "#0A0F1E" },
   body:            { flexGrow: 1, justifyContent: "center", padding: 24, paddingVertical: 48 },
-  logoBox:         { width: 76, height: 76, borderRadius: 18, backgroundColor: "rgba(179,157,219,0.1)", borderWidth: 1, borderColor: "rgba(179,157,219,0.25)", alignItems: "center", justifyContent: "center", marginBottom: 22 },
+  logoBox:         { width: 82, height: 82, borderRadius: 20, backgroundColor: "rgba(179,157,219,0.08)", borderWidth: 1, borderColor: "rgba(179,157,219,0.22)", alignItems: "center", justifyContent: "center", marginBottom: 22 },
+  logoImg:         { width: 68, height: 68, borderRadius: 16 },
   title:           { fontSize: 27, fontWeight: "800", color: "#EEF2FF", lineHeight: 34 },
   subtitle:        { fontSize: 13, color: "#7B87A6", lineHeight: 20, marginTop: 8, marginBottom: 24 },
   card:            { backgroundColor: "#141B2D", borderRadius: 16, padding: 18, borderWidth: 1, borderColor: "rgba(255,255,255,0.07)" },
@@ -205,4 +263,15 @@ const styles = StyleSheet.create({
   btnPrimaryText:  { fontSize: 15, fontWeight: "800", color: "#0A0F1E" },
   switchBtn:       { alignItems: "center", paddingTop: 16 },
   switchText:      { fontSize: 13, color: "#B39DDB", fontWeight: "700" },
+  modalOverlay:    { flex: 1, backgroundColor: "rgba(10,15,30,0.78)", alignItems: "center", justifyContent: "center", padding: 24 },
+  messageModal:    { width: "100%", maxWidth: 340, backgroundColor: "#141B2D", borderRadius: 18, padding: 22, borderWidth: 1, borderColor: "rgba(255,255,255,0.09)" },
+  modalIcon:       { width: 54, height: 54, borderRadius: 15, alignItems: "center", justifyContent: "center", marginBottom: 16, borderWidth: 1 },
+  modalIconSuccess:{ backgroundColor: "rgba(179,157,219,0.1)", borderColor: "rgba(179,157,219,0.24)" },
+  modalIconError:  { backgroundColor: "rgba(255,79,107,0.1)", borderColor: "rgba(255,79,107,0.24)" },
+  modalTitle:      { fontSize: 18, fontWeight: "800", color: "#EEF2FF", marginBottom: 8 },
+  modalDesc:       { fontSize: 13, color: "#7B87A6", lineHeight: 20, marginBottom: 20 },
+  modalActionBtn:  { minHeight: 46, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  modalActionSuccess: { backgroundColor: "#B39DDB" },
+  modalActionError:{ backgroundColor: "#FF4F6B" },
+  modalActionText: { fontSize: 14, fontWeight: "800", color: "#0A0F1E" },
 });

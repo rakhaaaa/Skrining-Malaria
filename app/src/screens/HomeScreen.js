@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Image, Pressable, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Image, Pressable, Modal } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { getHistory } from "../utils/storage";
@@ -16,6 +16,7 @@ export default function HomeScreen() {
   // modelActive menyimpan status apakah backend/model bisa dihubungi.
   const [modelActive, setModelActive] = useState(false);
   const [user, setUser] = useState(null);
+  const [logoutVisible, setLogoutVisible] = useState(false);
   const displayRole = user?.role
     ? user.role.replace(/_/g, " ").replace(/\b\w/g, char => char.toUpperCase())
     : "Pengguna";
@@ -62,23 +63,15 @@ export default function HomeScreen() {
     return () => clearInterval(intervalId);
   }, []);
 
-  const handleLogout = () => {
-    Alert.alert("Logout", "Keluar dari akun tenaga medis?", [
-      { text: "Batal", style: "cancel" },
-      {
-        text: "Logout",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await logoutUser();
-          } catch (error) {
-            // Session lokal tetap dibersihkan meskipun backend sedang tidak bisa dihubungi.
-          }
-          await clearSession();
-          navigation.reset({ index: 0, routes: [{ name: "Login" }] });
-        },
-      },
-    ]);
+  const handleLogout = async () => {
+    setLogoutVisible(false);
+    try {
+      await logoutUser();
+    } catch (error) {
+      // Session lokal tetap dibersihkan meskipun backend sedang tidak bisa dihubungi.
+    }
+    await clearSession();
+    navigation.reset({ index: 0, routes: [{ name: "Login" }] });
   };
 
 return (
@@ -97,7 +90,7 @@ return (
             <Text style={styles.heading}>Deteksi <Text style={styles.headingAccent}>Malaria</Text></Text>
           </View>
           <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.85}>
+            <TouchableOpacity style={styles.logoutBtn} onPress={() => setLogoutVisible(true)} activeOpacity={0.85}>
               <Ionicons name="log-out-outline" size={20} color="#FF4F6B" />
             </TouchableOpacity>
             <View style={styles.headerIcon}>
@@ -185,6 +178,34 @@ return (
           <Text style={styles.navLabel}>About</Text>
         </TouchableOpacity>
       </View>
+
+      <Modal
+        transparent
+        visible={logoutVisible}
+        animationType="fade"
+        onRequestClose={() => setLogoutVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.logoutModal}>
+            <View style={styles.modalIcon}>
+              <Ionicons name="log-out-outline" size={26} color="#FF4F6B" />
+            </View>
+            <Text style={styles.modalTitle}>Logout Akun</Text>
+            <Text style={styles.modalDesc}>
+              Keluar dari akun {displayRole}? Kamu perlu login kembali untuk Skrining Malaria.
+            </Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={() => setLogoutVisible(false)} activeOpacity={0.85}>
+                <Text style={styles.modalCancelText}>Batal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalLogoutBtn} onPress={handleLogout} activeOpacity={0.85}>
+                <Ionicons name="log-out-outline" size={17} color="#0A0F1E" />
+                <Text style={styles.modalLogoutText}>Logout</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -245,4 +266,14 @@ const styles = StyleSheet.create({
   bottomNav:      { position: "absolute", bottom: 0, left: 0, right: 0, flexDirection: "row", backgroundColor: "#0F1628", borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.07)", paddingBottom: 24, paddingTop: 12 },
   navItem:        { flex: 1, alignItems: "center", gap: 4 },
   navLabel:       { fontSize: 11, color: "#7B87A6", fontWeight: "500" },
+  modalOverlay:   { flex: 1, backgroundColor: "rgba(10,15,30,0.78)", alignItems: "center", justifyContent: "center", padding: 24 },
+  logoutModal:    { width: "100%", maxWidth: 340, backgroundColor: "#141B2D", borderRadius: 18, padding: 22, borderWidth: 1, borderColor: "rgba(255,255,255,0.09)" },
+  modalIcon:      { width: 52, height: 52, borderRadius: 14, backgroundColor: "rgba(255,79,107,0.1)", borderWidth: 1, borderColor: "rgba(255,79,107,0.24)", alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  modalTitle:     { fontSize: 18, fontWeight: "800", color: "#EEF2FF", marginBottom: 8 },
+  modalDesc:      { fontSize: 13, color: "#7B87A6", lineHeight: 20, marginBottom: 20 },
+  modalActions:   { flexDirection: "row", gap: 10 },
+  modalCancelBtn: { flex: 1, minHeight: 46, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center", backgroundColor: "#0F1628" },
+  modalCancelText:{ fontSize: 14, fontWeight: "700", color: "#EEF2FF" },
+  modalLogoutBtn: { flex: 1, minHeight: 46, flexDirection: "row", gap: 8, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: "#FF4F6B" },
+  modalLogoutText:{ fontSize: 14, fontWeight: "800", color: "#0A0F1E" },
 });
