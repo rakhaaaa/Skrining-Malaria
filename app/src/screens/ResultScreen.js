@@ -64,7 +64,7 @@ export default function ResultScreen() {
           <Text style={styles.resultDesc}>
             {isPositive
               ? "Hasil skrining mengarah ke risiko malaria. Pemeriksaan apusan darah atau RDT tetap diperlukan untuk memastikan hasil."
-              : "Hasil analisis tidak menunjukkan indikasi malaria berdasarkan parameter laboratorium yang dimasukkan."}
+              : "Parameter yang dimasukkan belum menunjukkan pola yang kuat ke arah malaria. Jika gejala berlanjut, lakukan pemeriksaan lanjutan."}
           </Text>
         </View>
 
@@ -222,7 +222,7 @@ function generateHTML(r) {
     <div style="background:${isPos ? "rgba(255,79,107,0.15)" : "rgba(179,157,219,0.1)"};border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;border:1px solid ${color}">
       <h1 style="color:${color};margin:0">Malaria ${r.result}</h1>
       <p style="margin:8px 0;color:#EEF2FF">Tingkat Risiko: <strong>${r.confidence}%</strong></p>
-      <p style="margin:4px 0;color:#7B87A6;font-size:13px">${isPos ? "Hasil analisis menunjukkan indikasi positif malaria. Segera lakukan konfirmasi dengan pemeriksaan apusan darah." : "Hasil analisis tidak menunjukkan indikasi malaria berdasarkan parameter laboratorium yang dimasukkan."}</p>
+      <p style="margin:4px 0;color:#7B87A6;font-size:13px">${isPos ? "Hasil skrining mengarah ke risiko malaria. Pemeriksaan apusan darah atau RDT tetap diperlukan untuk memastikan hasil." : "Parameter yang dimasukkan belum menunjukkan pola yang kuat ke arah malaria. Jika gejala berlanjut, lakukan pemeriksaan lanjutan."}</p>
     </div>
     <h3 style="color:#EEF2FF;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:8px;margin-top:24px">Data Pasien</h3>
     <table width="100%" style="border-collapse:collapse;font-size:13px;color:#EEF2FF">
