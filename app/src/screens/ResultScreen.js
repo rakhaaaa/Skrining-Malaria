@@ -63,7 +63,7 @@ export default function ResultScreen() {
           </Text>
           <Text style={styles.resultDesc}>
             {isPositive
-              ? "Hasil analisis menunjukkan indikasi positif malaria. Segera lakukan konfirmasi dengan pemeriksaan apusan darah."
+              ? "Hasil skrining mengarah ke risiko malaria. Pemeriksaan apusan darah atau RDT tetap diperlukan untuk memastikan hasil."
               : "Hasil analisis tidak menunjukkan indikasi malaria berdasarkan parameter laboratorium yang dimasukkan."}
           </Text>
         </View>
