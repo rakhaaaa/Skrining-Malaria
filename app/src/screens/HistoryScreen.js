@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, Alert, ScrollView, Dimensions, TextInput } from "react-native";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, Alert, ScrollView, Dimensions, TextInput, Modal } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { getHistory, clearHistory, saveHistory } from "../utils/storage";
@@ -21,6 +21,13 @@ export default function HistoryScreen() {
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState([]);
   const [activeTab, setActiveTab] = useState("riwayat");
+  const [confirmModal, setConfirmModal] = useState({
+    visible: false,
+    title: "",
+    message: "",
+    confirmLabel: "Hapus",
+    onConfirm: null,
+  });
   const { themeName, theme } = useTheme();
 
   // Mengambil semua data riwayat yang tersimpan.
@@ -35,28 +42,47 @@ export default function HistoryScreen() {
     return unsubscribe;
   }, [navigation]);
 
+  const openConfirmModal = ({ title, message, confirmLabel = "Hapus", onConfirm }) => {
+    setConfirmModal({ visible: true, title, message, confirmLabel, onConfirm });
+  };
+
+  const closeConfirmModal = () => {
+    setConfirmModal(prev => ({ ...prev, visible: false, onConfirm: null }));
+  };
+
+  const executeConfirmAction = async () => {
+    const action = confirmModal.onConfirm;
+    closeConfirmModal();
+    if (action) await action();
+  };
+
   const handleClearAll = () => {
     // Menghapus semua riwayat setelah pengguna menekan setuju.
-    Alert.alert("Hapus Semua Riwayat", "Apakah Anda yakin ingin menghapus seluruh riwayat skrining?", [
-      { text: "Batal", style: "cancel" },
-      { text: "Hapus", style: "destructive", onPress: async () => { await clearHistory(); setHistory([]); setSelected([]); setSelectMode(false); } }
-    ]);
+    openConfirmModal({
+      title: "Hapus Semua Riwayat",
+      message: "Apakah Anda yakin ingin menghapus seluruh riwayat skrining?",
+      onConfirm: async () => {
+        await clearHistory();
+        setHistory([]);
+        setSelected([]);
+        setSelectMode(false);
+      },
+    });
   };
 
   const handleDeleteSelected = () => {
     // Menghapus data yang sedang dipilih.
-    Alert.alert("Hapus Riwayat", `Hapus ${selected.length} riwayat yang dipilih?`, [
-      { text: "Batal", style: "cancel" },
-      {
-        text: "Hapus", style: "destructive", onPress: async () => {
+    openConfirmModal({
+      title: "Hapus Riwayat",
+      message: `Hapus ${selected.length} riwayat yang dipilih?`,
+      onConfirm: async () => {
           const updated = history.filter((_, i) => !selected.includes(i));
           await saveHistory(updated);
           setHistory(updated);
           setSelected([]);
           setSelectMode(false);
-        }
-      }
-    ]);
+      },
+    });
   };
 
   const toggleSelect = (index) => {
@@ -68,6 +94,14 @@ export default function HistoryScreen() {
     // Memilih semua data atau membatalkan semua pilihan.
     if (selected.length === history.length) setSelected([]);
     else setSelected(history.map((_, i) => i));
+  };
+
+  const changeTab = (tab) => {
+    setActiveTab(tab);
+    if (tab !== "riwayat") {
+      setSelectMode(false);
+      setSelected([]);
+    }
   };
 
   const handleExportExcel = async () => {
@@ -180,7 +214,7 @@ export default function HistoryScreen() {
           {selectMode ? `${selected.length} dipilih` : "Riwayat Pemeriksaan"}
         </Text>
         <View style={styles.topnavRight}>
-          {!selectMode ? (
+          {activeTab === "riwayat" && !selectMode ? (
             <>
               <TouchableOpacity style={styles.backBtn} onPress={() => setSelectMode(true)}>
                 <Ionicons name="checkmark-circle-outline" size={18} color="#00B8FF" />
@@ -191,7 +225,7 @@ export default function HistoryScreen() {
                 </TouchableOpacity>
               )}
             </>
-          ) : (
+          ) : activeTab === "riwayat" ? (
             <>
               <TouchableOpacity style={styles.backBtn} onPress={toggleSelectAll}>
                 <Ionicons name={selected.length === history.length ? "checkbox" : "square-outline"} size={18} color="#B39DDB" />
@@ -200,16 +234,18 @@ export default function HistoryScreen() {
                 <Ionicons name="close" size={18} color="#7B87A6" />
               </TouchableOpacity>
             </>
+          ) : (
+            <View style={{ width: 80 }} />
           )}
         </View>
       </View>
 
       {/* Tombol tab untuk pindah antara riwayat dan statistik. */}
       <View style={styles.tabRow}>
-        <TouchableOpacity style={[styles.tab, activeTab === "riwayat" && styles.tabActive]} onPress={() => setActiveTab("riwayat")}>
+        <TouchableOpacity style={[styles.tab, activeTab === "riwayat" && styles.tabActive]} onPress={() => changeTab("riwayat")}>
           <Text style={[styles.tabText, activeTab === "riwayat" && styles.tabTextActive]}>Riwayat</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.tab, activeTab === "statistik" && styles.tabActive]} onPress={() => setActiveTab("statistik")}>
+        <TouchableOpacity style={[styles.tab, activeTab === "statistik" && styles.tabActive]} onPress={() => changeTab("statistik")}>
           <Text style={[styles.tabText, activeTab === "statistik" && styles.tabTextActive]}>Statistik</Text>
         </TouchableOpacity>
       </View>
@@ -295,7 +331,7 @@ export default function HistoryScreen() {
           {selectMode && selected.length > 0 && (
             <View style={styles.fixedBottom}>
               <TouchableOpacity style={styles.btnDelete} onPress={handleDeleteSelected}>
-                <Ionicons name="trash-outline" size={18} color="#0A0F1E" />
+                <Ionicons name="trash-outline" size={18} color="#EEF2FF" />
                 <Text style={styles.btnDeleteText}>Hapus {selected.length} Riwayat</Text>
               </TouchableOpacity>
             </View>
@@ -389,6 +425,32 @@ export default function HistoryScreen() {
           </TouchableOpacity>
         </View>
       )}
+
+      <Modal
+        transparent
+        visible={confirmModal.visible}
+        animationType="fade"
+        onRequestClose={closeConfirmModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmModal}>
+            <View style={styles.modalIcon}>
+              <Ionicons name="trash-outline" size={26} color="#FF4F6B" />
+            </View>
+            <Text style={styles.modalTitle}>{confirmModal.title}</Text>
+            <Text style={styles.modalDesc}>{confirmModal.message}</Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalCancelBtn} onPress={closeConfirmModal} activeOpacity={0.85}>
+                <Text style={styles.modalCancelText}>Batal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalDeleteBtn} onPress={executeConfirmAction} activeOpacity={0.85}>
+                {/* <Ionicons name="trash-outline" size={17} color="#EEF2FF" /> */}
+                <Text style={styles.modalDeleteText}>{confirmModal.confirmLabel}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -434,7 +496,7 @@ const styles = StyleSheet.create({
   btnStartText:     { color: "#0A0F1E", fontWeight: "700", fontSize: 14 },
   fixedBottom:      { position: "absolute", bottom: 0, left: 0, right: 0, padding: 20, paddingBottom: 36, backgroundColor: "#0A0F1E", borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.07)" },
   btnDelete:        { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: "#FF4F6B", borderRadius: 14, padding: 16 },
-  btnDeleteText:    { fontSize: 15, fontWeight: "700", color: "#0A0F1E" },
+  btnDeleteText:    { fontSize: 15, fontWeight: "700", color: "#EEF2FF" },
   btnExport:        { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: "#B39DDB", borderRadius: 14, padding: 14, marginBottom: 20 },
   btnExportText:    { fontSize: 14, fontWeight: "700", color: "#0A0F1E" },
   statCard:         { flex: 1, backgroundColor: "#141B2D", borderRadius: 14, padding: 14, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.07)" },
@@ -445,4 +507,14 @@ const styles = StyleSheet.create({
   bottomNav:        { flexDirection: "row", backgroundColor: "#0F1628", borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.07)", paddingBottom: 24, paddingTop: 12 },
   navItem:          { flex: 1, alignItems: "center", gap: 4 },
   navLabel:         { fontSize: 11, color: "#7B87A6", fontWeight: "500" },
+  modalOverlay:     { flex: 1, backgroundColor: "rgba(10,15,30,0.78)", alignItems: "center", justifyContent: "center", padding: 24 },
+  confirmModal:     { width: "100%", maxWidth: 340, backgroundColor: "#141B2D", borderRadius: 18, padding: 22, borderWidth: 1, borderColor: "rgba(255,255,255,0.09)" },
+  modalIcon:        { width: 52, height: 52, borderRadius: 14, backgroundColor: "rgba(255,79,107,0.1)", borderWidth: 1, borderColor: "rgba(255,79,107,0.24)", alignItems: "center", justifyContent: "center", marginBottom: 16 },
+  modalTitle:       { fontSize: 18, fontWeight: "800", color: "#EEF2FF", marginBottom: 8 },
+  modalDesc:        { fontSize: 13, color: "#7B87A6", lineHeight: 20, marginBottom: 20 },
+  modalActions:     { flexDirection: "row", gap: 10 },
+  modalCancelBtn:   { flex: 1, minHeight: 46, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center", backgroundColor: "#0F1628" },
+  modalCancelText:  { fontSize: 14, fontWeight: "700", color: "#EEF2FF" },
+  modalDeleteBtn:   { flex: 1, minHeight: 46, flexDirection: "row", gap: 8, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: "#FF4F6B" },
+  modalDeleteText:  { fontSize: 14, fontWeight: "800", color: "#EEF2FF" },
 });

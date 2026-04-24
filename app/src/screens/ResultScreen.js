@@ -16,6 +16,7 @@ export default function ResultScreen() {
   const color      = isPositive ? "#FF4F6B" : "#B39DDB";
   const bgColor    = isPositive ? "rgba(255,79,107,0.1)" : "rgba(179,157,219,0.08)";
   const symptoms   = Array.isArray(result.symptoms) ? result.symptoms : [];
+  const sexLabel   = formatSex(result.sex);
 
   // Beberapa data input ditampilkan lagi dalam bentuk ringkasan.
   const features = [
@@ -123,7 +124,7 @@ export default function ResultScreen() {
         <View style={styles.card}>
           <Text style={styles.cardHeader}>Data Pasien</Text>
           <DataRow label="Nama Pasien" value={result.patientName || "-"} />
-          <DataRow label="Jenis Kelamin" value={result.sex || "-"} />
+          <DataRow label="Jenis Kelamin" value={sexLabel} />
           <DataRow label="Usia" value={result.age ? `${result.age} Tahun` : "-"} />
           <DataRow label="Tanggal" value={result.date || "-"} />
         </View>
@@ -173,6 +174,12 @@ function DataRow({ label, value }) {
   );
 }
 
+function formatSex(sex) {
+  if (sex === "Male") return "Laki-laki";
+  if (sex === "Female") return "Perempuan";
+  return sex || "-";
+}
+
 function generateHTML(r) {
   // Fungsi ini membuat isi laporan PDF.
   const isPos = r.result === "Positive";
@@ -193,66 +200,89 @@ function generateHTML(r) {
   const waktuStr = `${jam}.${menit}.${detik}`;
 
   const rekPos = [
-    "Segera lakukan pemeriksaan apusan darah tebal dan tipis untuk konfirmasi parasit Plasmodium.",
-    "Konsultasikan dengan dokter spesialis penyakit dalam atau dokter umum sesegera mungkin.",
-    "Pantau tanda-tanda malaria berat: demam tinggi, menggigil hebat, dan penurunan kesadaran.",
-    "Jika dikonfirmasi positif, mulai pengobatan antimalaria sesuai protokol WHO.",
+    "Sebaiknya pasien segera melakukan pemeriksaan lanjutan, seperti apusan darah atau RDT.",
+    "Bawa hasil ini saat berkonsultasi dengan dokter atau tenaga kesehatan.",
+    "Perhatikan tanda bahaya seperti demam tinggi, menggigil berat, sangat lemas, atau penurunan kesadaran.",
+    "Pengobatan hanya diberikan setelah hasil dipastikan oleh tenaga kesehatan.",
   ];
   const rekNeg = [
-    "Parameter darah tidak menunjukkan tanda-tanda infeksi malaria saat ini.",
-    "Jika gejala masih ada, pertimbangkan pemeriksaan untuk penyakit lain seperti DBD atau Tifoid.",
-    "Tetap waspada jika berada di area endemis malaria, ulangi tes jika gejala berlanjut.",
+    "Hasil skrining belum mengarah kuat ke malaria berdasarkan data yang dimasukkan.",
+    "Jika demam atau keluhan lain masih berlanjut, pasien tetap perlu diperiksa kembali.",
+    "Jika pasien tinggal atau baru bepergian dari daerah endemis malaria, pemeriksaan ulang tetap disarankan.",
   ];
   const pencegahan = [
-    "Gunakan kelambu berinsektisida saat tidur, terutama di daerah endemis.",
-    "Pakai pakaian lengan panjang dan celana panjang saat beraktivitas di luar malam hari.",
-    "Gunakan obat nyamuk (losion/semprot) yang mengandung DEET atau Picaridin.",
-    "Pastikan lingkungan bebas dari genangan air sebagai tempat berkembang biak nyamuk.",
-    "Konsumsi obat antimalaria profilaksis jika bepergian ke daerah endemis malaria.",
+    "Gunakan kelambu saat tidur, terutama jika tinggal di daerah rawan malaria.",
+    "Pakai baju lengan panjang dan celana panjang saat keluar rumah pada malam hari.",
+    "Gunakan losion atau semprotan antinyamuk sesuai petunjuk pemakaian.",
+    "Bersihkan genangan air di sekitar rumah agar nyamuk tidak mudah berkembang biak.",
+    "Jika akan bepergian ke daerah endemis malaria, konsultasikan dulu dengan tenaga kesehatan.",
   ];
   const rekom = isPos ? rekPos : rekNeg;
 
-  return `<html><body style="font-family:Arial;padding:32px;background:#0A0F1E;color:#EEF2FF">
+  return `<html>
+  <head>
+    <style>
+      @page { margin: 0; background: #F8FAFC; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #F8FAFC !important;
+        color: #111827 !important;
+        font-family: Arial, sans-serif;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .pdf-page {
+        min-height: 100vh;
+        padding: 32px;
+        background: #F8FAFC;
+        color: #111827;
+      }
+    </style>
+  </head>
+  <body>
+  <div class="pdf-page">
     <div style="text-align:center;margin-bottom:24px">
-      <h2 style="color:#B39DDB;margin:0">MalariaCheck</h2>
-      <p style="color:#7B87A6;margin:4px 0">Laporan Skrining Awal Malaria</p>
-      <p style="color:#7B87A6;font-size:12px">Hari, Tanggal: ${tanggalStr}</p>
-      <p style="color:#7B87A6;font-size:12px">Waktu: ${waktuStr}</p>
+      <h2 style="color:#4F46E5;margin:0">MalariaCheck</h2>
+      <p style="color:#64748B;margin:4px 0">Laporan Skrining Awal Malaria</p>
+      <p style="color:#64748B;font-size:12px">Hari, Tanggal: ${tanggalStr}</p>
+      <p style="color:#64748B;font-size:12px">Waktu: ${waktuStr}</p>
     </div>
-    <div style="background:${isPos ? "rgba(255,79,107,0.15)" : "rgba(179,157,219,0.1)"};border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;border:1px solid ${color}">
+    <div style="background:${isPos ? "#FFF1F2" : "#EEF2FF"};border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;border:1px solid ${color}">
       <h1 style="color:${color};margin:0">Malaria ${r.result}</h1>
-      <p style="margin:8px 0;color:#EEF2FF">Tingkat Risiko: <strong>${r.confidence}%</strong></p>
-      <p style="margin:4px 0;color:#7B87A6;font-size:13px">${isPos ? "Hasil skrining mengarah ke risiko malaria. Pemeriksaan apusan darah atau RDT tetap diperlukan untuk memastikan hasil." : "Parameter yang dimasukkan belum menunjukkan pola yang kuat ke arah malaria. Jika gejala berlanjut, lakukan pemeriksaan lanjutan."}</p>
+      <p style="margin:8px 0;color:#111827">Tingkat Risiko: <strong>${r.confidence}%</strong></p>
+      <p style="margin:4px 0;color:#475569;font-size:13px">${isPos ? "Hasil skrining ini mengarah ke risiko malaria. Pasien tetap perlu pemeriksaan lanjutan agar hasilnya lebih pasti." : "Hasil skrining ini belum mengarah kuat ke malaria. Jika keluhan masih ada, pasien sebaiknya tetap diperiksa kembali."}</p>
     </div>
-    <h3 style="color:#EEF2FF;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:8px;margin-top:24px">Data Pasien</h3>
-    <table width="100%" style="border-collapse:collapse;font-size:13px;color:#EEF2FF">
-      ${[["Nama Pasien",r.patientName],["Jenis Kelamin",r.sex],["Usia",r.age+" Tahun"],
+    <h3 style="color:#111827;margin-top:24px;margin-bottom:8px">Data Pasien</h3>
+    <table width="100%" style="border-collapse:collapse;font-size:13px;color:#111827">
+      ${[["Nama Pasien",r.patientName],["Jenis Kelamin",formatSex(r.sex)],["Usia",r.age+" Tahun"],
         ["Hemoglobin",r.hemoglobin+" g/dL"],["Total WBC Count",r.wbc+" x10/uL"],
         ["Neutrofil",r.neutrophils+"%"],["Limfosit",r.lymphocytes+"%"],
         ["Eosinofil",r.eosinophils+" x10/uL"],["HCT/PCV",r.htc+"%"],
         ["MCH",r.mch+" pg"],["MCHC",r.mchc+" g/dL"],
         ["RDW-CV",r.rdwcv+"%"],["Platelet Count",r.platelet+" x10/uL"],
-      ].map(([l,v],i)=>`<tr style="background:${i%2===0?"#141B2D":"#192035"}">
-        <td style="padding:8px 12px;border:1px solid rgba(255,255,255,0.07)"><strong>${l}</strong></td>
-        <td style="padding:8px 12px;border:1px solid rgba(255,255,255,0.07)">${v||"-"}</td>
+      ].map(([l,v],i)=>`<tr style="background:${i%2===0?"#FFFFFF":"#F1F5F9"}">
+        <td style="padding:8px 12px;border:1px solid #E2E8F0"><strong>${l}</strong></td>
+        <td style="padding:8px 12px;border:1px solid #E2E8F0">${v||"-"}</td>
       </tr>`).join("")}
     </table>
-    <h3 style="color:#EEF2FF;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:8px;margin-top:24px">Gejala Pasien</h3>
+    <h3 style="color:#111827;margin-top:24px;margin-bottom:8px">Gejala Pasien</h3>
     ${symptoms.length > 0
-      ? `<ul style="color:#7B87A6;font-size:13px;line-height:1.8;padding-left:20px">${symptoms.map(item => `<li style="margin-bottom:6px">${item}</li>`).join("")}</ul>`
-      : `<p style="color:#7B87A6;font-size:13px">Tidak ada gejala yang dipilih.</p>`}
-    <h3 style="color:#EEF2FF;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:8px;margin-top:24px">${isPos ? "Tindakan yang Disarankan" : "Rekomendasi"}</h3>
-    <ul style="color:#7B87A6;font-size:13px;line-height:1.8;padding-left:20px">
+      ? `<ul style="color:#475569;font-size:13px;line-height:1.8;padding-left:20px">${symptoms.map(item => `<li style="margin-bottom:6px">${item}</li>`).join("")}</ul>`
+      : `<p style="color:#475569;font-size:13px">Tidak ada gejala yang dipilih.</p>`}
+    <h3 style="color:#111827;margin-top:24px;margin-bottom:8px">${isPos ? "Tindakan yang Disarankan" : "Rekomendasi"}</h3>
+    <ul style="color:#475569;font-size:13px;line-height:1.8;padding-left:20px">
       ${rekom.map(item => `<li style="margin-bottom:6px">${item}</li>`).join("")}
     </ul>
-    <h3 style="color:#EEF2FF;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:8px;margin-top:24px">Pencegahan Malaria</h3>
-    <ul style="color:#7B87A6;font-size:13px;line-height:1.8;padding-left:20px">
+    <h3 style="color:#111827;margin-top:24px;margin-bottom:8px">Pencegahan Malaria</h3>
+    <ul style="color:#475569;font-size:13px;line-height:1.8;padding-left:20px">
       ${pencegahan.map(p => `<li style="margin-bottom:6px">${p}</li>`).join("")}
     </ul>
-    <p style="text-align:center;color:#7B87A6;font-size:11px;margin-top:32px">
-      MalariaCheck - Universitas Tarumanagara 2026<br/>
+    <p style="text-align:center;color:#64748B;font-size:11px;margin-top:32px">
+      MalariaCheck<br/>
       <em>Hasil ini bersifat pendukung, bukan pengganti diagnosis klinis.</em>
     </p>
+  </div>
   </body></html>`;
 }
 

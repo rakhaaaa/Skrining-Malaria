@@ -1,9 +1,13 @@
 import { getAuthToken } from "./auth";
 
 // BASE_URL adalah alamat backend Flask yang dipakai aplikasi saat mengirim data.
-const BASE_URL = "http://172.16.59.245:5000";
+const BASE_URL = "http://10.10.10.108:5000";
+const REQUEST_TIMEOUT_MS = 8000;
 
 async function request(path, options = {}) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
   try {
     // Semua request ke backend dilewatkan ke fungsi ini supaya penanganannya rapi di satu tempat.
     const { auth, ...fetchOptions } = options;
@@ -12,20 +16,31 @@ async function request(path, options = {}) {
       ...(fetchOptions.headers || {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
-    const response = await fetch(`${BASE_URL}${path}`, { ...fetchOptions, headers });
+    const response = await fetch(`${BASE_URL}${path}`, {
+      ...fetchOptions,
+      headers,
+      signal: controller.signal,
+    });
     if (!response.ok) {
       const err = await response.json().catch(() => ({}));
       throw new Error(err.error || "Gagal menghubungi server");
     }
     return response;
   } catch (error) {
-    if (error.message && error.message !== "Failed to fetch" && error.message !== "Network request failed") {
+    if (
+      error.message &&
+      error.name !== "AbortError" &&
+      error.message !== "Failed to fetch" &&
+      error.message !== "Network request failed"
+    ) {
       throw error;
     }
     // Pesan ini ditampilkan kalau aplikasi tidak bisa tersambung ke backend.
     throw new Error(
       "Tidak bisa terhubung ke backend. Pastikan server Flask aktif, perangkat satu jaringan, dan BASE_URL di src/utils/api.js sudah benar."
     );
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
