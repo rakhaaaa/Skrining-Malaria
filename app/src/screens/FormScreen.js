@@ -117,8 +117,8 @@ export default function FormScreen() {
         proba_pos: res.proba_pos, proba_neg: res.proba_neg,
         date: new Date().toLocaleString("id-ID"),
       };
-      await saveHistory(record);
-      navigation.navigate("Result", { result: record });
+      const savedRecord = await saveHistory(record);
+      navigation.navigate("Result", { result: savedRecord || record });
     } catch (e) {
       Alert.alert("Analisis Gagal", e.message || "Pastikan server backend sudah berjalan dan IP sudah benar di src/utils/api.js");
     } finally {

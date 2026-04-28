@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, g
 from flask_cors import CORS
 import joblib
+import json
 import os
 import pandas as pd
 import pymysql
@@ -76,6 +77,37 @@ def init_db():
                         ON DELETE CASCADE
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS screenings (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    patient_name VARCHAR(160) NOT NULL,
+                    sex VARCHAR(20) NOT NULL,
+                    age VARCHAR(20) NOT NULL,
+                    hemoglobin VARCHAR(40) NOT NULL,
+                    wbc VARCHAR(40) NOT NULL,
+                    neutrophils VARCHAR(40) NOT NULL,
+                    lymphocytes VARCHAR(40) NOT NULL,
+                    eosinophils VARCHAR(40) NOT NULL,
+                    htc VARCHAR(40) NOT NULL,
+                    mch VARCHAR(40) NOT NULL,
+                    mchc VARCHAR(40) NOT NULL,
+                    rdwcv VARCHAR(40) NOT NULL,
+                    platelet VARCHAR(40) NOT NULL,
+                    symptoms JSON NULL,
+                    result VARCHAR(20) NOT NULL,
+                    confidence DECIMAL(6,2) NOT NULL,
+                    proba_pos DECIMAL(6,2) NOT NULL,
+                    proba_neg DECIMAL(6,2) NOT NULL,
+                    screening_date VARCHAR(80) NOT NULL,
+                    created_at DATETIME NOT NULL,
+                    INDEX idx_screenings_user_id (user_id),
+                    INDEX idx_screenings_created_at (created_at),
+                    CONSTRAINT fk_screenings_user
+                        FOREIGN KEY (user_id) REFERENCES users (id)
+                        ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            """)
 
 def public_user(row):
     return {
@@ -84,6 +116,71 @@ def public_user(row):
         "username": row["username"],
         "role": row["role"],
     }
+
+def serialize_screening_row(row):
+    symptoms = row.get("symptoms")
+    if isinstance(symptoms, str):
+        try:
+            symptoms = json.loads(symptoms)
+        except json.JSONDecodeError:
+            symptoms = []
+
+    return {
+        "id": row["id"],
+        "patientName": row["patient_name"],
+        "sex": row["sex"],
+        "age": row["age"],
+        "hemoglobin": row["hemoglobin"],
+        "wbc": row["wbc"],
+        "neutrophils": row["neutrophils"],
+        "lymphocytes": row["lymphocytes"],
+        "eosinophils": row["eosinophils"],
+        "htc": row["htc"],
+        "mch": row["mch"],
+        "mchc": row["mchc"],
+        "rdwcv": row["rdwcv"],
+        "platelet": row["platelet"],
+        "symptoms": symptoms or [],
+        "result": row["result"],
+        "confidence": float(row["confidence"]),
+        "proba_pos": float(row["proba_pos"]),
+        "proba_neg": float(row["proba_neg"]),
+        "date": row["screening_date"],
+    }
+
+def insert_screening(cursor, user_id, item):
+    cursor.execute("""
+        INSERT INTO screenings (
+            user_id, patient_name, sex, age, hemoglobin, wbc, neutrophils, lymphocytes,
+            eosinophils, htc, mch, mchc, rdwcv, platelet, symptoms, result,
+            confidence, proba_pos, proba_neg, screening_date, created_at
+        )
+        VALUES (
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+        )
+    """, (
+        user_id,
+        item.get("patientName") or "Pasien Anonim",
+        item.get("sex") or "",
+        str(item.get("age") or ""),
+        str(item.get("hemoglobin") or ""),
+        str(item.get("wbc") or ""),
+        str(item.get("neutrophils") or ""),
+        str(item.get("lymphocytes") or ""),
+        str(item.get("eosinophils") or ""),
+        str(item.get("htc") or ""),
+        str(item.get("mch") or ""),
+        str(item.get("mchc") or ""),
+        str(item.get("rdwcv") or ""),
+        str(item.get("platelet") or ""),
+        json.dumps(item.get("symptoms") or []),
+        item.get("result") or "",
+        float(item.get("confidence") or 0),
+        float(item.get("proba_pos") or 0),
+        float(item.get("proba_neg") or 0),
+        item.get("date") or "",
+        datetime.utcnow(),
+    ))
 
 def get_current_user():
     auth_header = request.headers.get("Authorization", "")
@@ -190,6 +287,59 @@ def logout():
                 cursor.execute("DELETE FROM sessions WHERE token = %s", (token,))
     return jsonify({"message": "Logout berhasil."})
 
+@app.route("/screenings", methods=["GET"])
+@require_auth
+def get_screenings():
+    with get_db() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT *
+                FROM screenings
+                WHERE user_id = %s
+                ORDER BY created_at DESC, id DESC
+            """, (g.current_user["id"],))
+            rows = cursor.fetchall()
+    return jsonify({"items": [serialize_screening_row(row) for row in rows]})
+
+@app.route("/screenings", methods=["POST"])
+@require_auth
+def create_screening():
+    item = request.get_json() or {}
+    with get_db() as conn:
+        with conn.cursor() as cursor:
+            insert_screening(cursor, g.current_user["id"], item)
+            inserted_id = cursor.lastrowid
+            cursor.execute("SELECT * FROM screenings WHERE id = %s", (inserted_id,))
+            row = cursor.fetchone()
+    return jsonify({"item": serialize_screening_row(row)}), 201
+
+@app.route("/screenings/replace", methods=["POST"])
+@require_auth
+def replace_screenings():
+    payload = request.get_json() or {}
+    items = payload.get("items") or []
+    with get_db() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("DELETE FROM screenings WHERE user_id = %s", (g.current_user["id"],))
+            for item in reversed(items):
+                insert_screening(cursor, g.current_user["id"], item)
+            cursor.execute("""
+                SELECT *
+                FROM screenings
+                WHERE user_id = %s
+                ORDER BY created_at DESC, id DESC
+            """, (g.current_user["id"],))
+            rows = cursor.fetchall()
+    return jsonify({"items": [serialize_screening_row(row) for row in rows]})
+
+@app.route("/screenings", methods=["DELETE"])
+@require_auth
+def delete_all_screenings():
+    with get_db() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("DELETE FROM screenings WHERE user_id = %s", (g.current_user["id"],))
+    return jsonify({"message": "Riwayat skrining berhasil dihapus."})
+
 @app.route("/predict", methods=["POST"])
 @require_auth
 def predict():
@@ -231,7 +381,7 @@ def predict():
 
 @app.route("/health", methods=["GET"])
 def health():
-    # Bagian ini dipakai untuk mengecek apakah backend aktif.
+    # dipakai untuk mengecek apakah backend aktif.
     return jsonify({"status": "ok"})
 
 init_db()

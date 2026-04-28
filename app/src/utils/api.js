@@ -1,7 +1,7 @@
 import { getAuthToken } from "./auth";
 
 // BASE_URL adalah alamat backend Flask yang dipakai aplikasi saat mengirim data.
-const BASE_URL = "http://10.10.10.108:5000";
+const BASE_URL = "http://172.16.59.129:5000";
 const REQUEST_TIMEOUT_MS = 8000;
 
 async function request(path, options = {}) {
@@ -81,6 +81,39 @@ export async function getCurrentUser() {
 export async function logoutUser() {
   const response = await request("/logout", {
     method: "POST",
+    auth: true,
+  });
+  return await response.json();
+}
+
+export async function createScreening(record) {
+  const response = await request("/screenings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(record),
+    auth: true,
+  });
+  return await response.json();
+}
+
+export async function getScreenings() {
+  const response = await request("/screenings", { auth: true });
+  return await response.json();
+}
+
+export async function replaceScreenings(items) {
+  const response = await request("/screenings/replace", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items }),
+    auth: true,
+  });
+  return await response.json();
+}
+
+export async function clearScreenings() {
+  const response = await request("/screenings", {
+    method: "DELETE",
     auth: true,
   });
   return await response.json();

@@ -15,38 +15,38 @@ export default function AboutScreen() {
   const [showWorkflow, setShowWorkflow] = useState(false);
 
   // Nama dosen pembimbing disimpan di sini supaya gampang dipakai di tampilan.
-  const supervisorName = "- TENY HANDHAYANI S.Kom., M.Kom., Ph.D.\n- Dr. Ir. Meirista Wulandari, S.T., M.Eng";
+  const supervisorName = "- Teny Handayani S.Kom., M.Kom., Ph.D.\n- Dr. Ir. Meirista Wulandari, S.T., M.Eng";
 
   // Daftar langkah yang dipakai untuk menampilkan alur kerja aplikasi.
   const workflowSteps = [
     {
       title: "Mulai dan Isi Data",
       description:
-        "Pengguna masuk ke menu Diagnosis, lalu mengisi data pasien dan hasil pemeriksaan darah yang diperlukan.",
+        "Pengguna membuka menu Diagnosis, lalu mengisi data pasien dan hasil pemeriksaan darah yang diperlukan.",
       icon: "create-outline",
     },
     {
       title: "Cek dan Siapkan Data",
       description:
-        "Aplikasi mengecek apakah data sudah lengkap dan angkanya sudah benar, lalu menyiapkannya agar bisa dibaca oleh model.",
+        "Aplikasi mengecek apakah semua data sudah lengkap dan format angkanya sudah benar, lalu menyiapkannya biar bisa diproses oleh model.",
       icon: "filter-outline",
     },
     {
       title: "Proses Prediksi",
       description:
-        "Data dikirim ke backend Flask, lalu model machine learning menghitung kemungkinan malaria berdasarkan pola dari data yang sudah dipelajari sebelumnya.",
+        "Data kemudian dikirim ke backend Flask, lalu model machine learning menghitung kemungkinan malaria berdasarkan pola yang sudah dipelajari sebelumnya.",
       icon: "analytics-outline",
     },
     {
       title: "Tampilkan Hasil",
       description:
-        "Sistem menampilkan hasil skrining berupa Positive atau Negative, lengkap dengan confidence score sebagai gambaran keyakinan model.",
+        "Lalu, sistem menampilkan hasil skrining berupa Positive atau Negative, lengkap dengan confidence score sebagai gambaran tingkat keyakinan model.",
       icon: "pulse-outline",
     },
     {
       title: "Simpan ke Riwayat",
       description:
-        "Hasil pemeriksaan disimpan ke riwayat agar bisa dilihat lagi kapan saja bila diperlukan.",
+        "Hasil pemeriksaan disimpan ke riwayat biar bisa dibuka lagi kapan aja kalau diperlukan.",
       icon: "save-outline",
     },
   ];
@@ -85,11 +85,11 @@ export default function AboutScreen() {
         <View style={[styles.card, { backgroundColor: theme.surface }]}> 
           <Text style={[styles.cardTitle, { color: theme.text }]}>Pembuatan Aplikasi</Text>
           <Text style={[styles.bodyText, { color: theme.muted }]}> 
-            Sistemnya terdiri dari aplikasi mobile React Native Expo untuk input
-            dan tampilan hasil, serta backend Flask untuk menjalankan model machine learning.
+            Aplikasi ini dibuat dengan React Native Expo untuk bagian input dan tampilan hasil, lalu backend Flask
+            dipakai untuk menjalankan model machine learning.
           </Text>
           <Text style={[styles.bodyText, { color: theme.muted, marginTop: 8 }]}> 
-            Hasil pemeriksaan juga bisa disimpan ke riwayat, jadi pengguna dapat membukanya kembali saat diperlukan.
+            Hasil pemeriksaan juga bisa disimpan ke riwayat, jadi pengguna bisa melihatnya lagi kapan pun dibutuhkan.
           </Text>
         </View>
 
@@ -97,13 +97,13 @@ export default function AboutScreen() {
         <View style={[styles.card, { backgroundColor: theme.surface }]}> 
           <Text style={[styles.cardTitle, { color: theme.text }]}>Metode yang Dipakai</Text>
           <Text style={[styles.bodyText, { color: theme.muted }]}> 
-            Penelitian ini memakai Light Gradient Boosting Machine (LightGBM) sebagai metode utama, dan CatBoost
-            sebagai pembanding. Data yang digunakan antara lain jenis kelamin, usia, hemoglobin, WBC, neutrofil,
-            limfosit, eosinofil, HTC/PCV, MCH, MCHC, RDW-CV, dan platelet count.
+            Penelitian ini memakai Light Gradient Boosting Machine (LightGBM) sebagai metode utama, dengan CatBoost
+            sebagai metode penguji. Data yang dipakai antara lain jenis kelamin, usia, hemoglobin, WBC,
+            neutrofil, limfosit, eosinofil, HTC/PCV, MCH, MCHC, RDW-CV, dan platelet count.
           </Text>
           <Text style={[styles.bodyText, { color: theme.muted, marginTop: 8 }]}> 
-            Untuk melihat performa model, pengujian dilakukan dengan metrik Accuracy, Precision, Recall, F1-Score,
-            dan k-fold cross validation.
+            Untuk melihat performa model, pengujian dilakukan dengan Accuracy, Precision, Recall, F1-Score, dan
+            k-fold cross validation.
           </Text>
         </View>
 
@@ -117,7 +117,7 @@ export default function AboutScreen() {
             <View style={styles.sectionToggleTextWrap}>
               <Text style={[styles.cardTitle, { color: theme.text, marginBottom: 4 }]}>Cara Kerja</Text>
               <Text style={[styles.toggleHint, { color: theme.muted }]}> 
-                Tekan untuk {showWorkflow ? "sembunyikan" : "lihat"} penjelasannya
+                Pencet untuk {showWorkflow ? "sembunyikan" : "lihat"} penjelasannya
               </Text>
             </View>
             <Ionicons
@@ -131,13 +131,13 @@ export default function AboutScreen() {
           {showWorkflow ? (
             <>
               <Text style={[styles.bodyText, { color: theme.muted, marginTop: 14 }]}> 
-                Bagian ini menjelaskan alur kerja MalariaCheck dari data dimasukkan sampai hasil skrining muncul.
+                Bagian ini menjelaskan alur kerja MalariaCheck, mulai dari data dimasukkan sampai hasil skrining ditampilkan.
               </Text>
 
               {/* Badge kecil ini dipakai sebagai penanda visual untuk bagian alur kerja. */}
               <View style={styles.flowHeader}>
                 <View style={styles.flowBadge}>
-                  <Text style={styles.flowBadgeText}>Gimana cara kerjanya?</Text>
+                  <Text style={styles.flowBadgeText}>Bagaimana cara kerjanya?</Text>
                 </View>
               </View>
 
@@ -217,7 +217,7 @@ export default function AboutScreen() {
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} activeOpacity={0.8}>
           <Ionicons name="information-circle" size={22} color="#B39DDB" />
-          <Text style={[styles.navLabel, styles.navLabelActive]}>About</Text>
+          <Text style={[styles.navLabel, styles.navLabelActive]}>Tentang</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -335,3 +335,5 @@ const styles = StyleSheet.create({
   navLabel: { fontSize: 11, color: "#7B87A6", fontWeight: "500" },
   navLabelActive: { color: "#B39DDB" },
 });
+
+

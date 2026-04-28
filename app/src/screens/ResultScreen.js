@@ -17,6 +17,7 @@ export default function ResultScreen() {
   const bgColor    = isPositive ? "rgba(255,79,107,0.1)" : "rgba(179,157,219,0.08)";
   const symptoms   = Array.isArray(result.symptoms) ? result.symptoms : [];
   const sexLabel   = formatSex(result.sex);
+  const resultLabel = formatResultLabel(result.result);
 
   // Beberapa data input ditampilkan lagi dalam bentuk ringkasan.
   const features = [
@@ -60,7 +61,7 @@ export default function ResultScreen() {
             <Text style={styles.ringLabel}>RISIKO</Text>
           </View>
           <Text style={[styles.resultStatus, { color }]}>
-            {isPositive ? "POSITIF MALARIA" : "NEGATIF MALARIA"}
+            {resultLabel.toUpperCase()}
           </Text>
           <Text style={styles.resultDesc}>
             {isPositive
@@ -180,11 +181,18 @@ function formatSex(sex) {
   return sex || "-";
 }
 
+function formatResultLabel(result) {
+  if (result === "Positive") return "Positif";
+  if (result === "Negative") return "Negatif";
+  return result || "-";
+}
+
 function generateHTML(r) {
   // Fungsi ini membuat isi laporan PDF.
   const isPos = r.result === "Positive";
   const color = isPos ? "#FF4F6B" : "#B39DDB";
   const symptoms = Array.isArray(r.symptoms) ? r.symptoms : [];
+  const resultLabel = formatResultLabel(r.result);
 
   const now = new Date();
   const hariList = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
@@ -238,6 +246,26 @@ function generateHTML(r) {
         background: #F8FAFC;
         color: #111827;
       }
+      .pdf-section {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      .pdf-section-spacious {
+        padding-top: 14px;
+      }
+      .pdf-title-spacious {
+        margin-top: 32px !important;
+      }
+      .pdf-list {
+        margin: 0;
+        padding-left: 20px;
+        color: #475569;
+        font-size: 13px;
+        line-height: 1.8;
+      }
+      .pdf-list li {
+        margin-bottom: 6px;
+      }
     </style>
   </head>
   <body>
@@ -249,7 +277,7 @@ function generateHTML(r) {
       <p style="color:#64748B;font-size:12px">Waktu: ${waktuStr}</p>
     </div>
     <div style="background:${isPos ? "#FFF1F2" : "#EEF2FF"};border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;border:1px solid ${color}">
-      <h1 style="color:${color};margin:0">Malaria ${r.result}</h1>
+      <h1 style="color:${color};margin:0">${resultLabel}</h1>
       <p style="margin:8px 0;color:#111827">Tingkat Risiko: <strong>${r.confidence}%</strong></p>
       <p style="margin:4px 0;color:#475569;font-size:13px">${isPos ? "Hasil skrining ini mengarah ke risiko malaria. Pasien tetap perlu pemeriksaan lanjutan agar hasilnya lebih pasti." : "Hasil skrining ini belum mengarah kuat ke malaria. Jika keluhan masih ada, pasien sebaiknya tetap diperiksa kembali."}</p>
     </div>
@@ -266,18 +294,24 @@ function generateHTML(r) {
         <td style="padding:8px 12px;border:1px solid #E2E8F0">${v||"-"}</td>
       </tr>`).join("")}
     </table>
-    <h3 style="color:#111827;margin-top:24px;margin-bottom:8px">Gejala Pasien</h3>
-    ${symptoms.length > 0
-      ? `<ul style="color:#475569;font-size:13px;line-height:1.8;padding-left:20px">${symptoms.map(item => `<li style="margin-bottom:6px">${item}</li>`).join("")}</ul>`
-      : `<p style="color:#475569;font-size:13px">Tidak ada gejala yang dipilih.</p>`}
-    <h3 style="color:#111827;margin-top:24px;margin-bottom:8px">${isPos ? "Tindakan yang Disarankan" : "Rekomendasi"}</h3>
-    <ul style="color:#475569;font-size:13px;line-height:1.8;padding-left:20px">
-      ${rekom.map(item => `<li style="margin-bottom:6px">${item}</li>`).join("")}
-    </ul>
-    <h3 style="color:#111827;margin-top:24px;margin-bottom:8px">Pencegahan Malaria</h3>
-    <ul style="color:#475569;font-size:13px;line-height:1.8;padding-left:20px">
-      ${pencegahan.map(p => `<li style="margin-bottom:6px">${p}</li>`).join("")}
-    </ul>
+    <div class="pdf-section">
+      <h3 style="color:#111827;margin-top:24px;margin-bottom:8px">Gejala Pasien</h3>
+      ${symptoms.length > 0
+        ? `<ul class="pdf-list">${symptoms.map(item => `<li>${item}</li>`).join("")}</ul>`
+        : `<p style="color:#475569;font-size:13px">Tidak ada gejala yang dipilih.</p>`}
+    </div>
+    <div class="pdf-section">
+      <h3 style="color:#111827;margin-top:24px;margin-bottom:8px">${isPos ? "Tindakan yang Disarankan" : "Rekomendasi"}</h3>
+      <ul class="pdf-list">
+        ${rekom.map(item => `<li>${item}</li>`).join("")}
+      </ul>
+    </div>
+    <div class="pdf-section pdf-section-spacious">
+      <h3 class="pdf-title-spacious" style="color:#111827;margin-top:24px;margin-bottom:8px">Pencegahan Malaria</h3>
+      <ul class="pdf-list">
+        ${pencegahan.map(p => `<li>${p}</li>`).join("")}
+      </ul>
+    </div>
     <p style="text-align:center;color:#64748B;font-size:11px;margin-top:32px">
       MalariaCheck<br/>
       <em>Hasil ini bersifat pendukung, bukan pengganti diagnosis klinis.</em>

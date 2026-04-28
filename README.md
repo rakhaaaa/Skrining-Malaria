@@ -56,13 +56,13 @@ Setelah QR code muncul:
 2. Buat Virtual Device (AVD)
 3. Tekan `a` di terminal Expo
 
-### Opsi C - Jalankan di Browser (Web)
+<!-- ### Opsi C - Jalankan di Browser (Web)
 ```bash
 npx expo start --web
 ```
 Buka `http://localhost:8081` di browser.
 
----
+--- -->
 
 ## Catatan
 
