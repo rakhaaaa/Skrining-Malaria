@@ -1,8 +1,9 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Platform, Modal } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import * as Print from "expo-print";
+import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 
 export default function ResultScreen() {
@@ -18,6 +19,20 @@ export default function ResultScreen() {
   const symptoms   = Array.isArray(result.symptoms) ? result.symptoms : [];
   const sexLabel   = formatSex(result.sex);
   const resultLabel = formatResultLabel(result.result);
+  const [messageModal, setMessageModal] = React.useState({
+    visible: false,
+    title: "",
+    message: "",
+    type: "success",
+  });
+
+  const showMessage = ({ title, message, type = "success" }) => {
+    setMessageModal({ visible: true, title, message, type });
+  };
+
+  const closeMessage = () => {
+    setMessageModal(prev => ({ ...prev, visible: false }));
+  };
 
   // Beberapa data input ditampilkan lagi dalam bentuk ringkasan.
   const features = [
@@ -29,14 +44,56 @@ export default function ResultScreen() {
     { name: "RDW-CV",          val: `${result.rdwcv || "-"}%`,             pct: Math.min((parseFloat(result.rdwcv)||0) / 20 * 100, 100) },
   ];
 
+  const buildPdfFile = async () => {
+    const html = generateHTML(result);
+    return await Print.printToFileAsync({ html });
+  };
+
   const handleDownloadPDF = async () => {
     try {
-      // Membuat laporan PDF lalu membukanya untuk dibagikan atau disimpan.
-      const html = generateHTML(result);
-      const { uri } = await Print.printToFileAsync({ html });
+      // Membuat PDF lalu menyimpannya ke folder pilihan pengguna di Android.
+      const { uri } = await buildPdfFile();
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const fileName = `laporan_malaria_${timestamp}.pdf`;
+
+      if (Platform.OS === "android") {
+        const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+
+        if (!permissions.granted) {
+          showMessage({ title: "Batal", message: "Pemilihan folder penyimpanan dibatalkan.", type: "error" });
+          return;
+        }
+
+        const base64 = await FileSystem.readAsStringAsync(uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        const targetUri = await FileSystem.StorageAccessFramework.createFileAsync(
+          permissions.directoryUri,
+          fileName,
+          "application/pdf"
+        );
+        await FileSystem.writeAsStringAsync(targetUri, base64, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        showMessage({ title: "Berhasil", message: `PDF berhasil disimpan dengan nama ${fileName}.`, type: "success" });
+        return;
+      }
+
+      const targetUri = `${FileSystem.documentDirectory}${fileName}`;
+      await FileSystem.copyAsync({ from: uri, to: targetUri });
+      showMessage({ title: "Berhasil", message: "PDF berhasil disimpan.", type: "success" });
+    } catch (e) {
+      showMessage({ title: "Gagal", message: "Tidak dapat menyimpan PDF.", type: "error" });
+    }
+  };
+
+  const handleSharePDF = async () => {
+    try {
+      // Membuat PDF lalu membuka menu bagikan.
+      const { uri } = await buildPdfFile();
       await Sharing.shareAsync(uri, { mimeType: "application/pdf", dialogTitle: "Laporan Skrining Malaria" });
     } catch (e) {
-      Alert.alert("Gagal", "Tidak dapat membuat PDF: " + e.message);
+      showMessage({ title: "Gagal", message: "Tidak dapat membagikan PDF.", type: "error" });
     }
   };
 
@@ -140,6 +197,12 @@ export default function ResultScreen() {
             <Ionicons name="download-outline" size={18} color="#0A0F1E" />
             <Text style={styles.btnPrimaryText}>Unduh PDF</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.btnDark} onPress={handleSharePDF} activeOpacity={0.85}>
+            <Ionicons name="share-social-outline" size={18} color="#EEF2FF" />
+            <Text style={styles.btnDarkText}>Bagikan PDF</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.btnRow}>
           <TouchableOpacity style={styles.btnDark} onPress={() => navigation.navigate("Form")} activeOpacity={0.85}>
             <Ionicons name="add" size={18} color="#EEF2FF" />
             <Text style={styles.btnDarkText}>Baru</Text>
@@ -149,6 +212,40 @@ export default function ResultScreen() {
           <Text style={styles.btnSecondaryText}>Kembali ke Beranda</Text>
         </TouchableOpacity>
       </View>
+
+      <Modal
+        transparent
+        visible={messageModal.visible}
+        animationType="fade"
+        onRequestClose={closeMessage}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.messageModal}>
+            <View style={[
+              styles.modalIcon,
+              messageModal.type === "success" ? styles.modalIconSuccess : styles.modalIconError,
+            ]}>
+              <Ionicons
+                name={messageModal.type === "success" ? "checkmark-circle-outline" : "alert-circle-outline"}
+                size={28}
+                color={messageModal.type === "success" ? "#B39DDB" : "#FF4F6B"}
+              />
+            </View>
+            <Text style={styles.modalTitle}>{messageModal.title}</Text>
+            <Text style={styles.modalDesc}>{messageModal.message}</Text>
+            <TouchableOpacity
+              style={[
+                styles.modalActionBtn,
+                messageModal.type === "success" ? styles.modalActionSuccess : styles.modalActionError,
+              ]}
+              onPress={closeMessage}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.modalActionText}>Ok</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -365,4 +462,15 @@ const styles = StyleSheet.create({
   btnDarkText:    { fontSize: 14, fontWeight: "600", color: "#EEF2FF" },
   btnSecondary:   { alignItems: "center", padding: 14, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
   btnSecondaryText: { fontSize: 14, color: "#7B87A6", fontWeight: "500" },
+  modalOverlay:    { flex: 1, backgroundColor: "rgba(10,15,30,0.78)", alignItems: "center", justifyContent: "center", padding: 24 },
+  messageModal:    { width: "100%", maxWidth: 340, backgroundColor: "#141B2D", borderRadius: 18, padding: 22, borderWidth: 1, borderColor: "rgba(255,255,255,0.09)" },
+  modalIcon:       { width: 54, height: 54, borderRadius: 15, alignItems: "center", justifyContent: "center", marginBottom: 16, borderWidth: 1 },
+  modalIconSuccess:{ backgroundColor: "rgba(179,157,219,0.1)", borderColor: "rgba(179,157,219,0.24)" },
+  modalIconError:  { backgroundColor: "rgba(255,79,107,0.1)", borderColor: "rgba(255,79,107,0.24)" },
+  modalTitle:      { fontSize: 18, fontWeight: "800", color: "#EEF2FF", marginBottom: 8 },
+  modalDesc:       { fontSize: 13, color: "#7B87A6", lineHeight: 20, marginBottom: 20 },
+  modalActionBtn:  { minHeight: 46, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  modalActionSuccess: { backgroundColor: "#B39DDB" },
+  modalActionError:{ backgroundColor: "#FF4F6B" },
+  modalActionText: { fontSize: 14, fontWeight: "800", color: "#0A0F1E" },
 });

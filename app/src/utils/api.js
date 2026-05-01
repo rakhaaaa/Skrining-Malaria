@@ -1,7 +1,7 @@
 import { getAuthToken } from "./auth";
 
 // BASE_URL adalah alamat backend Flask yang dipakai aplikasi saat mengirim data.
-const BASE_URL = "http://172.16.59.129:5000";
+const BASE_URL = "http://192.168.110.238:5000";
 const REQUEST_TIMEOUT_MS = 8000;
 
 async function request(path, options = {}) {
