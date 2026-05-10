@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify, g
 from flask_cors import CORS
 import joblib
-import json
 import os
 import pandas as pd
 import pymysql
@@ -16,6 +15,7 @@ app = Flask(__name__)
 CORS(app)
 
 MYSQL_CONFIG = {
+    # Nilai koneksi database diambil dari environment variable agar mudah dipindah antar perangkat.
     "host": os.getenv("MYSQL_HOST", "localhost"),
     "port": int(os.getenv("MYSQL_PORT", "3306")),
     "user": os.getenv("MYSQL_USER", "root"),
@@ -26,21 +26,87 @@ MYSQL_CONFIG = {
     "autocommit": True,
 }
 SESSION_DAYS = 7
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.getenv("MODEL_PATH", os.path.join(BASE_DIR, "best_model_catboost.pkl"))
 
 # Load model
-model = joblib.load("best_model_catboost.pkl")
+model = joblib.load(MODEL_PATH)
 
-# Daftar kolom input yang dipakai model.
-FEATURES = [
+# Daftar kolom input. Jika model menyimpan feature_names_in_, backend akan
+# mengikuti urutan fitur dari model agar aman saat file .pkl diganti.
+DEFAULT_FEATURES = [
     "Sex", "Age", "Hemoglobin(Hb%)", "Total WBC count(/cumm)",
     "Neutrophils", "Lymphocytes", "Total Cir.Eosinophils",
     "HTC/PCV(%)", "MCH(pg)", "MCHC(g/dl)", "RDW-CV(%)", "Platelet Count"
 ]
+FEATURES = list(getattr(model, "feature_names_in_", DEFAULT_FEATURES))
+
+FIELD_MAP = {
+    # Mapping ini menjembatani nama field dari model dengan nama payload dari frontend.
+    "Sex": ("sex", str),
+    "sex": ("sex", str),
+    "Age": ("age", float),
+    "age": ("age", float),
+    "Hemoglobin(Hb%)": ("hemoglobin", float),
+    "Total WBC count(/cumm)": ("wbc", float),
+    "Neutrophils": ("neutrophils", float),
+    "Lymphocytes": ("lymphocytes", float),
+    "Total Cir.Eosinophils": ("eosinophils", float),
+    "HTC/PCV(%)": ("htc", float),
+    "MCH(pg)": ("mch", float),
+    "MCHC(g/dl)": ("mchc", float),
+    "RDW-CV(%)": ("rdwcv", float),
+    "Platelet Count": ("platelet", float),
+}
+
+def build_model_input(data):
+    # Fungsi ini menerjemahkan payload dari frontend ke DataFrame satu baris
+    # sesuai urutan fitur yang diminta model machine learning.
+    row = {}
+    for feature in FEATURES:
+        if feature not in FIELD_MAP:
+            raise ValueError(f"Fitur model tidak dikenali oleh backend: {feature}")
+
+        payload_key, converter = FIELD_MAP[feature]
+        value = data.get(payload_key)
+        if value is None or value == "":
+            raise ValueError(f"Field wajib belum diisi: {payload_key}")
+
+        row[feature] = converter(value)
+
+    return pd.DataFrame([row], columns=FEATURES)
+
+def prediction_label(pred):
+    # Model bisa mengembalikan angka atau string, jadi hasilnya dinormalisasi
+    # supaya frontend selalu menerima label Positive atau Negative.
+    if isinstance(pred, str):
+        normalized = pred.strip().lower()
+        if normalized in {"positive", "positif", "1", "malaria"}:
+            return "Positive"
+        if normalized in {"negative", "negatif", "0", "non-malaria", "non malaria"}:
+            return "Negative"
+    return "Positive" if int(pred) == 1 else "Negative"
+
+def class_probabilities(proba):
+    # Probabilitas kelas dipetakan ulang agar frontend selalu menerima
+    # pasangan nilai proba_neg dan proba_pos secara konsisten.
+    classes = getattr(model, "classes_", None)
+    if classes is None and hasattr(model, "named_steps"):
+        final_model = list(model.named_steps.values())[-1]
+        classes = getattr(final_model, "classes_", None)
+
+    if classes is None:
+        return round(float(proba[0]) * 100, 2), round(float(proba[1]) * 100, 2)
+
+    values = {prediction_label(cls): round(float(prob) * 100, 2) for cls, prob in zip(classes, proba)}
+    return values.get("Negative", 0.0), values.get("Positive", 0.0)
 
 def get_db():
+    # Setiap operasi database memakai koneksi baru agar lebih aman dan sederhana dikelola.
     return pymysql.connect(**MYSQL_CONFIG)
 
 def ensure_database():
+    # Membuat database utama jika belum ada.
     server_config = MYSQL_CONFIG.copy()
     database = server_config.pop("database")
     with pymysql.connect(**server_config) as conn:
@@ -51,6 +117,7 @@ def ensure_database():
             )
 
 def init_db():
+    # Saat backend pertama kali aktif, fungsi ini memastikan semua tabel penting sudah tersedia.
     ensure_database()
     with get_db() as conn:
         with conn.cursor() as cursor:
@@ -94,7 +161,6 @@ def init_db():
                     mchc VARCHAR(40) NOT NULL,
                     rdwcv VARCHAR(40) NOT NULL,
                     platelet VARCHAR(40) NOT NULL,
-                    symptoms JSON NULL,
                     result VARCHAR(20) NOT NULL,
                     confidence DECIMAL(6,2) NOT NULL,
                     proba_pos DECIMAL(6,2) NOT NULL,
@@ -110,6 +176,7 @@ def init_db():
             """)
 
 def public_user(row):
+    # Hanya field aman yang dikirim ke frontend; password hash sengaja tidak pernah ikut keluar.
     return {
         "id": row["id"],
         "full_name": row["full_name"],
@@ -118,13 +185,7 @@ def public_user(row):
     }
 
 def serialize_screening_row(row):
-    symptoms = row.get("symptoms")
-    if isinstance(symptoms, str):
-        try:
-            symptoms = json.loads(symptoms)
-        except json.JSONDecodeError:
-            symptoms = []
-
+    # Nama kolom database diubah ke format object yang dipakai frontend React Native.
     return {
         "id": row["id"],
         "patientName": row["patient_name"],
@@ -140,7 +201,6 @@ def serialize_screening_row(row):
         "mchc": row["mchc"],
         "rdwcv": row["rdwcv"],
         "platelet": row["platelet"],
-        "symptoms": symptoms or [],
         "result": row["result"],
         "confidence": float(row["confidence"]),
         "proba_pos": float(row["proba_pos"]),
@@ -149,14 +209,15 @@ def serialize_screening_row(row):
     }
 
 def insert_screening(cursor, user_id, item):
+    # Setiap hasil skrining disimpan sebagai satu baris baru yang terhubung ke user pemilik akun.
     cursor.execute("""
         INSERT INTO screenings (
             user_id, patient_name, sex, age, hemoglobin, wbc, neutrophils, lymphocytes,
-            eosinophils, htc, mch, mchc, rdwcv, platelet, symptoms, result,
+            eosinophils, htc, mch, mchc, rdwcv, platelet, result,
             confidence, proba_pos, proba_neg, screening_date, created_at
         )
         VALUES (
-            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+            %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
         )
     """, (
         user_id,
@@ -173,7 +234,6 @@ def insert_screening(cursor, user_id, item):
         str(item.get("mchc") or ""),
         str(item.get("rdwcv") or ""),
         str(item.get("platelet") or ""),
-        json.dumps(item.get("symptoms") or []),
         item.get("result") or "",
         float(item.get("confidence") or 0),
         float(item.get("proba_pos") or 0),
@@ -183,6 +243,7 @@ def insert_screening(cursor, user_id, item):
     ))
 
 def get_current_user():
+    # Header Authorization berisi token Bearer yang dipakai untuk mencari sesi login yang masih berlaku.
     auth_header = request.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer "):
         return None
@@ -200,6 +261,7 @@ def get_current_user():
             return cursor.fetchone()
 
 def require_auth(view):
+    # Decorator ini melindungi endpoint privat agar hanya bisa diakses setelah login berhasil.
     @wraps(view)
     def wrapped(*args, **kwargs):
         user = get_current_user()
@@ -211,6 +273,8 @@ def require_auth(view):
 
 @app.route("/register", methods=["POST"])
 def register():
+    # Endpoint ini menerima data registrasi dari frontend, memvalidasi isinya,
+    # lalu menyimpan akun baru ke tabel users.
     data = request.get_json() or {}
     full_name = (data.get("full_name") or "").strip()
     username = (data.get("username") or "").strip().lower()
@@ -243,6 +307,8 @@ def register():
 
 @app.route("/login", methods=["POST"])
 def login():
+    # Endpoint login mengecek kecocokan username dan password,
+    # lalu membuat token sesi baru jika akun valid.
     data = request.get_json() or {}
     username = (data.get("username") or "").strip().lower()
     password = data.get("password") or ""
@@ -275,10 +341,12 @@ def login():
 @app.route("/me", methods=["GET"])
 @require_auth
 def me():
+    # Endpoint ini dipakai frontend untuk mengambil identitas user aktif dari token yang tersimpan.
     return jsonify({"user": public_user(g.current_user)})
 
 @app.route("/logout", methods=["POST"])
 def logout():
+    # Logout dilakukan dengan menghapus token dari tabel sessions sehingga sesi langsung tidak berlaku.
     auth_header = request.headers.get("Authorization", "")
     token = auth_header.replace("Bearer ", "", 1).strip() if auth_header.startswith("Bearer ") else ""
     if token:
@@ -290,6 +358,8 @@ def logout():
 @app.route("/screenings", methods=["GET"])
 @require_auth
 def get_screenings():
+    # Endpoint ini mengambil seluruh riwayat skrining milik user aktif
+    # dan mengurutkannya dari data paling baru ke paling lama.
     with get_db() as conn:
         with conn.cursor() as cursor:
             cursor.execute("""
@@ -304,6 +374,7 @@ def get_screenings():
 @app.route("/screenings", methods=["POST"])
 @require_auth
 def create_screening():
+    # Endpoint ini dipakai setelah prediksi selesai untuk menambahkan satu hasil skrining baru.
     item = request.get_json() or {}
     with get_db() as conn:
         with conn.cursor() as cursor:
@@ -316,6 +387,8 @@ def create_screening():
 @app.route("/screenings/replace", methods=["POST"])
 @require_auth
 def replace_screenings():
+    # Endpoint ini mengganti seluruh daftar riwayat user aktif.
+    # Biasanya dipakai saat frontend menyimpan ulang daftar setelah ada item tertentu yang dihapus.
     payload = request.get_json() or {}
     items = payload.get("items") or []
     with get_db() as conn:
@@ -335,6 +408,7 @@ def replace_screenings():
 @app.route("/screenings", methods=["DELETE"])
 @require_auth
 def delete_all_screenings():
+    # Endpoint ini menghapus seluruh riwayat skrining milik akun yang sedang login.
     with get_db() as conn:
         with conn.cursor() as cursor:
             cursor.execute("DELETE FROM screenings WHERE user_id = %s", (g.current_user["id"],))
@@ -344,48 +418,36 @@ def delete_all_screenings():
 @require_auth
 def predict():
     try:
-        # Mengambil data dari frontend lalu menyusunnya ke format yang dibutuhkan model.
+        # Data dari frontend disusun dulu ke format DataFrame agar sesuai dengan kebutuhan model.
         data = request.get_json()
-        input_df = pd.DataFrame([{
-            "Sex":                      data.get("sex"),
-            "Age":                      float(data.get("age")),
-            "Hemoglobin(Hb%)":          float(data.get("hemoglobin")),
-            "Total WBC count(/cumm)":   float(data.get("wbc")),
-            "Neutrophils":              float(data.get("neutrophils")),
-            "Lymphocytes":              float(data.get("lymphocytes")),
-            "Total Cir.Eosinophils":    float(data.get("eosinophils")),
-            "HTC/PCV(%)":               float(data.get("htc")),
-            "MCH(pg)":                  float(data.get("mch")),
-            "MCHC(g/dl)":               float(data.get("mchc")),
-            "RDW-CV(%)":                float(data.get("rdwcv")),
-            "Platelet Count":           float(data.get("platelet")),
-        }])
+        input_df = build_model_input(data)
 
-        # Model menghitung hasil prediksi dan tingkat keyakinannya.
+        # Model menghasilkan label prediksi dan probabilitas tiap kelas.
         pred       = model.predict(input_df)[0]
         proba      = model.predict_proba(input_df)[0]
         confidence = round(float(max(proba)) * 100, 2)
-        label      = "Positive" if pred == 1 else "Negative"
+        label      = prediction_label(pred)
+        proba_neg, proba_pos = class_probabilities(proba)
 
-        # Hasil prediksi dikirim kembali ke aplikasi.
+        # Backend hanya mengirim ringkasan hasil yang memang dibutuhkan UI.
         return jsonify({
             "result":     label,
             "confidence": confidence,
-            "proba_neg":  round(float(proba[0]) * 100, 2),
-            "proba_pos":  round(float(proba[1]) * 100, 2),
+            "proba_neg":  proba_neg,
+            "proba_pos":  proba_pos,
         })
 
     except Exception as e:
-        # Kalau ada error, backend mengirim pesan error.
+        # Semua error validasi/prediksi dikembalikan ke frontend agar bisa ditampilkan ke pengguna.
         return jsonify({"error": str(e)}), 400
 
 @app.route("/health", methods=["GET"])
 def health():
-    # dipakai untuk mengecek apakah backend aktif.
+    # Endpoint sederhana untuk mengecek apakah backend sedang hidup dan bisa dihubungi.
     return jsonify({"status": "ok"})
 
 init_db()
 
 if __name__ == "__main__":
-    # Menjalankan backend di port 5000.
+    # Saat file dijalankan langsung, Flask backend dibuka di port 5000 untuk kebutuhan pengembangan.
     app.run(host="0.0.0.0", port=5000, debug=True)

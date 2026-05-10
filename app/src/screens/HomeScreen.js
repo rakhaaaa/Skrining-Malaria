@@ -16,7 +16,9 @@ export default function HomeScreen() {
   // modelActive menyimpan status apakah backend/model bisa dihubungi.
   const [modelActive, setModelActive] = useState(false);
   const [user, setUser] = useState(null);
+  // logoutVisible mengatur tampil atau tidaknya modal konfirmasi logout.
   const [logoutVisible, setLogoutVisible] = useState(false);
+  // displayRole merapikan role user agar lebih enak dibaca di UI.
   const displayRole = user?.role
     ? user.role.replace(/_/g, " ").replace(/\b\w/g, char => char.toUpperCase())
     : "Pengguna";
@@ -64,6 +66,7 @@ export default function HomeScreen() {
   }, []);
 
   const handleLogout = async () => {
+    // Saat logout dikonfirmasi, sesi di backend dan lokal dihapus lalu user dikirim ke layar login.
     setLogoutVisible(false);
     try {
       await logoutUser();
@@ -75,13 +78,13 @@ export default function HomeScreen() {
   };
 
 return (
-    // Wadah utama halaman beranda.
+    // Wadah utama halaman beranda yang menampung header, ringkasan, dan navigasi.
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0F1E" />
 
       {/* ScrollView dipakai supaya isi halaman tetap bisa digeser jika layar kecil. */}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-        {/* Bagian header: sapaan singkat dan ikon aplikasi. */}
+        {/* Bagian header menampilkan identitas pengguna yang sedang login dan akses logout. */}
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>
@@ -99,7 +102,7 @@ return (
           </View>
         </View>
 
-        {/* Kartu utama berisi penjelasan singkat model dan tombol mulai diagnosis. */}
+        {/* Kartu utama berfungsi sebagai hero section untuk menjelaskan fungsi aplikasi dan status model. */}
         <View style={styles.heroCard}>
           <View style={styles.heroBadge}>
             <View style={[styles.heroDot, !modelActive && styles.heroDotInactive]} />
@@ -115,7 +118,7 @@ return (
           </TouchableOpacity>
         </View>
 
-        {/* Tombol cepat ke halaman utama aplikasi. */}
+        {/* Kumpulan tombol cepat ini mempermudah akses ke fitur yang paling sering dipakai. */}
         <Text style={styles.sectionTitle}>Fitur Utama</Text>
         <View style={styles.quickActions}>
           {renderQuickAction({ label: "Diagnosis Baru", icon: "flask-outline", target: "Form" })}
@@ -123,7 +126,7 @@ return (
           {renderQuickAction({ label: "Tentang", icon: "information-circle-outline", target: "About" })}
         </View>
 
-        {/* Bagian ini menampilkan ringkasan riwayat terbaru. */}
+        {/* Bagian ini mengambil maksimal tiga data terakhir untuk ditampilkan sebagai ringkasan. */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Riwayat Terbaru</Text>
           <TouchableOpacity onPress={() => navigation.navigate("History")}>
@@ -131,7 +134,7 @@ return (
           </TouchableOpacity>
         </View>
 
-        {/* Kalau belum ada data, tampilkan pesan kosong. Kalau ada, tampilkan daftar riwayat terbaru. */}
+        {/* Jika belum ada riwayat, tampilkan empty state. Jika ada, tampilkan kartu riwayat terbaru. */}
         {recent.length === 0 ? (
           <View style={styles.emptyRecent}>
             <Text style={styles.emptyRecentText}>Belum ada riwayat pemeriksaan</Text>
@@ -159,7 +162,7 @@ return (
         )}
       </ScrollView>
 
-      {/* Navigasi bawah dipakai untuk pindah cepat ke halaman utama lain. */}
+      {/* Navigasi bawah menjaga pola perpindahan antar halaman tetap konsisten di seluruh aplikasi. */}
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem} activeOpacity={0.8}>
           <Ionicons name="home" size={22} color="#B39DDB" />
@@ -185,6 +188,7 @@ return (
         animationType="fade"
         onRequestClose={() => setLogoutVisible(false)}
       >
+        {/* Modal custom dipakai agar konfirmasi logout tetap seragam dengan gaya visual aplikasi. */}
         <View style={styles.modalOverlay}>
           <View style={styles.logoutModal}>
             <View style={styles.modalIcon}>
@@ -266,6 +270,7 @@ const styles = StyleSheet.create({
   bottomNav:      { position: "absolute", bottom: 0, left: 0, right: 0, flexDirection: "row", backgroundColor: "#0F1628", borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.07)", paddingBottom: 24, paddingTop: 12 },
   navItem:        { flex: 1, alignItems: "center", gap: 4 },
   navLabel:       { fontSize: 11, color: "#7B87A6", fontWeight: "500" },
+  // Gaya modal konfirmasi logout.
   modalOverlay:   { flex: 1, backgroundColor: "rgba(10,15,30,0.78)", alignItems: "center", justifyContent: "center", padding: 24 },
   logoutModal:    { width: "100%", maxWidth: 340, backgroundColor: "#141B2D", borderRadius: 18, padding: 22, borderWidth: 1, borderColor: "rgba(255,255,255,0.09)" },
   modalIcon:      { width: 52, height: 52, borderRadius: 14, backgroundColor: "rgba(255,79,107,0.1)", borderWidth: 1, borderColor: "rgba(255,79,107,0.24)", alignItems: "center", justifyContent: "center", marginBottom: 16 },

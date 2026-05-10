@@ -40,7 +40,7 @@ export default function AboutScreen() {
     {
       title: "Tampilkan Hasil",
       description:
-        "Lalu, sistem menampilkan hasil skrining berupa Positive atau Negative, lengkap dengan confidence score sebagai gambaran tingkat keyakinan model.",
+        "Lalu, sistem menampilkan hasil skrining berupa Positive atau Negative berdasarkan pola yang dikenali oleh model.",
       icon: "pulse-outline",
     },
     {
@@ -52,7 +52,7 @@ export default function AboutScreen() {
   ];
 
   return (
-    // Wadah utama halaman About.
+    // Wadah utama halaman About yang menampilkan ringkasan aplikasi dan konteks penelitian.
     <View style={[styles.container, { backgroundColor: theme.background }]}> 
       <StatusBar barStyle={themeName === "dark" ? "light-content" : "dark-content"} backgroundColor={theme.background} />
 
@@ -69,9 +69,9 @@ export default function AboutScreen() {
         <View style={{ width: 36 }} />
       </View>
 
-      {/* Isi halaman dibuat scroll supaya tetap nyaman dibuka di layar kecil. */}
+      {/* Seluruh isi dibuat scroll karena halaman ini berisi banyak informasi naratif. */}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: 110 }}>
-        {/* Kartu ini menjelaskan fungsi utama aplikasi secara singkat. */}
+        {/* Kartu ini memberi gambaran singkat fungsi aplikasi dalam bahasa yang mudah dipahami pengguna. */}
         <View style={[styles.card, { backgroundColor: theme.surface }]}> 
           <Text style={[styles.cardTitle, { color: theme.text }]}>Tentang Aplikasi</Text>
           <Text style={[styles.bodyText, { color: theme.muted }]}> 
@@ -81,7 +81,7 @@ export default function AboutScreen() {
           </Text>
         </View>
 
-        {/* Kartu ini menjelaskan aplikasi dibuat untuk apa dan dibangun dengan apa. */}
+        {/* Bagian ini menjelaskan teknologi utama yang dipakai pada frontend dan backend. */}
         <View style={[styles.card, { backgroundColor: theme.surface }]}> 
           <Text style={[styles.cardTitle, { color: theme.text }]}>Pembuatan Aplikasi</Text>
           <Text style={[styles.bodyText, { color: theme.muted }]}> 
@@ -93,7 +93,7 @@ export default function AboutScreen() {
           </Text>
         </View>
 
-        {/* Kartu ini berisi penjelasan singkat soal metode yang dipakai di penelitian. */}
+        {/* Bagian metode membantu menghubungkan aplikasi dengan isi penelitian atau skripsi. */}
         <View style={[styles.card, { backgroundColor: theme.surface }]}> 
           <Text style={[styles.cardTitle, { color: theme.text }]}>Metode yang Dipakai</Text>
           <Text style={[styles.bodyText, { color: theme.muted }]}> 
@@ -107,7 +107,7 @@ export default function AboutScreen() {
           </Text>
         </View>
 
-        {/* Bagian ini bisa dibuka dan ditutup supaya halaman About tidak terlalu panjang. */}
+        {/* Section collapsible dipakai agar halaman tetap ringkas tapi tetap punya penjelasan detail saat dibutuhkan. */}
         <View style={[styles.card, { backgroundColor: theme.surface }]}> 
           <TouchableOpacity
             style={styles.sectionToggle}
@@ -168,7 +168,7 @@ export default function AboutScreen() {
           ) : null}
         </View>
 
-        {/* Kartu ini berisi identitas pengembang, pembimbing, dan judul skripsi. */}
+        {/* Bagian identitas ini penting untuk dokumentasi akademik dan presentasi skripsi. */}
         <View style={[styles.card, { backgroundColor: theme.surface }]}> 
           <Text style={[styles.cardTitle, { color: theme.text }]}>Informasi Skripsi</Text>
           <View style={styles.infoRow}>
@@ -191,7 +191,7 @@ export default function AboutScreen() {
           </View>
         </View>
 
-        {/* Catatan ini mengingatkan kalau aplikasi hanya dipakai sebagai bantuan awal. */}
+        {/* Catatan ini menegaskan bahwa aplikasi bersifat pendukung, bukan pengganti keputusan klinis. */}
         <View style={[styles.card, { backgroundColor: theme.surface }]}> 
           <Text style={[styles.cardTitle, { color: theme.text }]}>Catatan Klinis</Text>
           <Text style={[styles.bodyText, { color: theme.muted }]}> 
@@ -335,5 +335,3 @@ const styles = StyleSheet.create({
   navLabel: { fontSize: 11, color: "#7B87A6", fontWeight: "500" },
   navLabelActive: { color: "#B39DDB" },
 });
-
-

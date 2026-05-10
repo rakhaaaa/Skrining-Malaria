@@ -16,7 +16,6 @@ export default function ResultScreen() {
   const isPositive = result.result === "Positive";
   const color      = isPositive ? "#FF4F6B" : "#B39DDB";
   const bgColor    = isPositive ? "rgba(255,79,107,0.1)" : "rgba(179,157,219,0.08)";
-  const symptoms   = Array.isArray(result.symptoms) ? result.symptoms : [];
   const sexLabel   = formatSex(result.sex);
   const resultLabel = formatResultLabel(result.result);
   const [messageModal, setMessageModal] = React.useState({
@@ -27,6 +26,7 @@ export default function ResultScreen() {
   });
 
   const showMessage = ({ title, message, type = "success" }) => {
+    // Modal ini dipakai untuk semua notifikasi hasil unduh/bagikan PDF.
     setMessageModal({ visible: true, title, message, type });
   };
 
@@ -45,6 +45,7 @@ export default function ResultScreen() {
   ];
 
   const buildPdfFile = async () => {
+    // PDF dibangun dari template HTML agar format laporan lebih mudah dikontrol.
     const html = generateHTML(result);
     return await Print.printToFileAsync({ html });
   };
@@ -98,6 +99,7 @@ export default function ResultScreen() {
   };
 
   return (
+    // Wadah utama halaman hasil diagnosis.
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#0A0F1E" />
 
@@ -111,23 +113,19 @@ export default function ResultScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 160 }}>
 
-        {/* Bagian ini menampilkan tingkat keyakinan dan hasil utama. */}
+        {/* Hero hasil menampilkan keputusan utama model: positif atau negatif. */}
         <View style={[styles.resultHero, { backgroundColor: bgColor }]}>
-          <View style={[styles.ring, { borderColor: color }]}>
-            <Text style={[styles.ringPct, { color }]}>{result.confidence || "--"}%</Text>
-            <Text style={styles.ringLabel}>RISIKO</Text>
-          </View>
           <Text style={[styles.resultStatus, { color }]}>
             {resultLabel.toUpperCase()}
           </Text>
           <Text style={styles.resultDesc}>
             {isPositive
               ? "Hasil skrining mengarah ke risiko malaria. Pemeriksaan apusan darah atau RDT tetap diperlukan untuk memastikan hasil."
-              : "Parameter yang dimasukkan belum menunjukkan pola yang kuat ke arah malaria. Jika gejala berlanjut, lakukan pemeriksaan lanjutan."}
+              : "Parameter yang dimasukkan belum menunjukkan pola yang kuat ke arah malaria. Jika keluhan berlanjut, lakukan pemeriksaan lanjutan."}
           </Text>
         </View>
 
-        {/* Bagian ini menampilkan saran sesuai hasil prediksi. */}
+        {/* Kartu rekomendasi memberi tindak lanjut yang relevan sesuai hasil skrining. */}
         <View style={[styles.recCard, isPositive ? styles.recCardPos : styles.recCardNeg]}>
           <Text style={[styles.recTitle, { color }]}>
             {isPositive ? "Tindakan Segera Diperlukan" : "Tidak Terindikasi Malaria"}
@@ -142,13 +140,13 @@ export default function ResultScreen() {
           ) : (
             <>
               <RecStep num="1" text="Parameter darah tidak menunjukkan tanda-tanda infeksi malaria" color="#B39DDB" />
-              <RecStep num="2" text="Jika gejala masih ada, pertimbangkan pemeriksaan untuk penyakit lain (DBD, Tifoid)" color="#B39DDB" />
-              <RecStep num="3" text="Tetap waspada jika berada di area endemis malaria - ulangi tes jika gejala berlanjut" color="#B39DDB" />
+              <RecStep num="2" text="Jika keluhan masih ada, pertimbangkan pemeriksaan untuk penyakit lain (DBD, Tifoid)" color="#B39DDB" />
+              <RecStep num="3" text="Tetap waspada jika berada di area endemis malaria dan ulangi tes bila keluhan berlanjut" color="#B39DDB" />
             </>
           )}
         </View>
 
-        {/* Bagian ini menampilkan ringkasan data input. */}
+        {/* Ringkasan parameter menampilkan kembali beberapa nilai penting yang sebelumnya dimasukkan. */}
         <View style={styles.card}>
           <Text style={styles.cardHeader}>Ringkasan Data Input</Text>
           {features.map((f, i) => (
@@ -162,23 +160,7 @@ export default function ResultScreen() {
           ))}
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardHeader}>Gejala Pasien</Text>
-          {symptoms.length > 0 ? (
-            <View style={styles.symptomList}>
-              {symptoms.map(symptom => (
-                <View key={symptom} style={styles.symptomItem}>
-                  <Ionicons name="checkmark-circle" size={16} color={color} />
-                  <Text style={styles.symptomText}>{symptom}</Text>
-                </View>
-              ))}
-            </View>
-          ) : (
-            <Text style={styles.emptySymptoms}>Tidak ada gejala yang dipilih.</Text>
-          )}
-        </View>
-
-        {/* Bagian ini menampilkan data dasar pasien. */}
+        {/* Data pasien dipisahkan agar laporan mudah dibaca dan cocok untuk dokumentasi. */}
         <View style={styles.card}>
           <Text style={styles.cardHeader}>Data Pasien</Text>
           <DataRow label="Nama Pasien" value={result.patientName || "-"} />
@@ -190,7 +172,7 @@ export default function ResultScreen() {
 
       </ScrollView>
 
-      {/* Tombol utama setelah hasil keluar diletakkan di bagian bawah. */}
+      {/* Tombol aksi utama diletakkan tetap di bawah supaya mudah dijangkau pengguna. */}
       <View style={styles.fixedBottom}>
         <View style={styles.btnRow}>
           <TouchableOpacity style={styles.btnPrimary} onPress={handleDownloadPDF} activeOpacity={0.85}>
@@ -219,6 +201,7 @@ export default function ResultScreen() {
         animationType="fade"
         onRequestClose={closeMessage}
       >
+        {/* Modal ini menangani umpan balik saat proses simpan atau bagikan PDF berhasil/gagal. */}
         <View style={styles.modalOverlay}>
           <View style={styles.messageModal}>
             <View style={[
@@ -273,22 +256,23 @@ function DataRow({ label, value }) {
 }
 
 function formatSex(sex) {
+  // Nilai teknis dari backend diubah jadi label yang lebih ramah dibaca pengguna.
   if (sex === "Male") return "Laki-laki";
   if (sex === "Female") return "Perempuan";
   return sex || "-";
 }
 
 function formatResultLabel(result) {
+  // Hasil backend berbahasa Inggris diubah ke label UI berbahasa Indonesia.
   if (result === "Positive") return "Positif";
   if (result === "Negative") return "Negatif";
   return result || "-";
 }
 
 function generateHTML(r) {
-  // Fungsi ini membuat isi laporan PDF.
+  // Fungsi ini membangun seluruh isi laporan PDF dalam bentuk HTML siap cetak.
   const isPos = r.result === "Positive";
   const color = isPos ? "#FF4F6B" : "#B39DDB";
-  const symptoms = Array.isArray(r.symptoms) ? r.symptoms : [];
   const resultLabel = formatResultLabel(r.result);
 
   const now = new Date();
@@ -375,7 +359,6 @@ function generateHTML(r) {
     </div>
     <div style="background:${isPos ? "#FFF1F2" : "#EEF2FF"};border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;border:1px solid ${color}">
       <h1 style="color:${color};margin:0">${resultLabel}</h1>
-      <p style="margin:8px 0;color:#111827">Tingkat Risiko: <strong>${r.confidence}%</strong></p>
       <p style="margin:4px 0;color:#475569;font-size:13px">${isPos ? "Hasil skrining ini mengarah ke risiko malaria. Pasien tetap perlu pemeriksaan lanjutan agar hasilnya lebih pasti." : "Hasil skrining ini belum mengarah kuat ke malaria. Jika keluhan masih ada, pasien sebaiknya tetap diperiksa kembali."}</p>
     </div>
     <h3 style="color:#111827;margin-top:24px;margin-bottom:8px">Data Pasien</h3>
@@ -391,12 +374,6 @@ function generateHTML(r) {
         <td style="padding:8px 12px;border:1px solid #E2E8F0">${v||"-"}</td>
       </tr>`).join("")}
     </table>
-    <div class="pdf-section">
-      <h3 style="color:#111827;margin-top:24px;margin-bottom:8px">Gejala Pasien</h3>
-      ${symptoms.length > 0
-        ? `<ul class="pdf-list">${symptoms.map(item => `<li>${item}</li>`).join("")}</ul>`
-        : `<p style="color:#475569;font-size:13px">Tidak ada gejala yang dipilih.</p>`}
-    </div>
     <div class="pdf-section">
       <h3 style="color:#111827;margin-top:24px;margin-bottom:8px">${isPos ? "Tindakan yang Disarankan" : "Rekomendasi"}</h3>
       <ul class="pdf-list">
@@ -418,14 +395,13 @@ function generateHTML(r) {
 }
 
 const styles = StyleSheet.create({
+  // Gaya dasar halaman hasil diagnosis.
   container:      { flex: 1, backgroundColor: "#0A0F1E" },
   topnav:         { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 52, paddingBottom: 14, paddingHorizontal: 20, backgroundColor: "#0F1628", borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.07)" },
   topnavTitle:    { fontSize: 16, fontWeight: "700", color: "#EEF2FF" },
   backBtn:        { width: 36, height: 36, borderRadius: 10, backgroundColor: "#141B2D", alignItems: "center", justifyContent: "center" },
+  // Gaya hero status hasil dan kartu rekomendasi.
   resultHero:     { margin: 20, borderRadius: 20, padding: 28, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.07)" },
-  ring:           { width: 120, height: 120, borderRadius: 60, borderWidth: 6, alignItems: "center", justifyContent: "center", marginBottom: 20 },
-  ringPct:        { fontSize: 28, fontWeight: "800" },
-  ringLabel:      { fontSize: 10, color: "#7B87A6", fontWeight: "700", letterSpacing: 1.5 },
   resultStatus:   { fontSize: 22, fontWeight: "800", marginBottom: 10 },
   resultDesc:     { fontSize: 13, color: "#7B87A6", textAlign: "center", lineHeight: 20 },
   recCard:        { marginHorizontal: 20, borderRadius: 16, padding: 18, marginBottom: 16, borderWidth: 1 },
@@ -436,6 +412,7 @@ const styles = StyleSheet.create({
   recNum:         { width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center", flexShrink: 0 },
   recNumText:     { fontSize: 12, fontWeight: "700" },
   recText:        { flex: 1, fontSize: 13, color: "#7B87A6", lineHeight: 20 },
+  // Gaya kartu ringkasan dan data pasien.
   card:           { marginHorizontal: 20, backgroundColor: "#141B2D", borderRadius: 16, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.07)" },
   cardHeader:     { fontSize: 14, fontWeight: "700", color: "#EEF2FF", marginBottom: 16 },
   featureRow:     { marginBottom: 12 },
@@ -446,14 +423,11 @@ const styles = StyleSheet.create({
   dataRow:        { flexDirection: "row", justifyContent: "space-between", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.05)" },
   dataLabel:      { fontSize: 13, color: "#7B87A6" },
   dataValue:      { fontSize: 13, fontWeight: "600", color: "#EEF2FF" },
-  symptomList:    { gap: 10 },
-  symptomItem:    { flexDirection: "row", alignItems: "center", gap: 10 },
-  symptomText:    { flex: 1, fontSize: 13, color: "#EEF2FF", lineHeight: 20 },
-  emptySymptoms:  { fontSize: 13, color: "#7B87A6", lineHeight: 20 },
   modelInfo:      { flexDirection: "row", alignItems: "center", gap: 14, marginHorizontal: 20, backgroundColor: "#141B2D", borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: "rgba(0,184,255,0.15)" },
   modelIcon:      { width: 44, height: 44, borderRadius: 12, backgroundColor: "rgba(0,184,255,0.1)", alignItems: "center", justifyContent: "center" },
   modelName:      { fontSize: 13, fontWeight: "700", color: "#EEF2FF" },
   modelStat:      { fontSize: 11, color: "#7B87A6", marginTop: 3 },
+  // Gaya tombol aksi bagian bawah.
   fixedBottom:    { position: "absolute", bottom: 0, left: 0, right: 0, padding: 20, paddingBottom: 36, backgroundColor: "#0A0F1E", borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.07)" },
   btnRow:         { flexDirection: "row", gap: 10, marginBottom: 10 },
   btnPrimary:     { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: "#B39DDB", borderRadius: 14, padding: 16 },
@@ -462,6 +436,7 @@ const styles = StyleSheet.create({
   btnDarkText:    { fontSize: 14, fontWeight: "600", color: "#EEF2FF" },
   btnSecondary:   { alignItems: "center", padding: 14, borderRadius: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.1)" },
   btnSecondaryText: { fontSize: 14, color: "#7B87A6", fontWeight: "500" },
+  // Gaya modal pesan.
   modalOverlay:    { flex: 1, backgroundColor: "rgba(10,15,30,0.78)", alignItems: "center", justifyContent: "center", padding: 24 },
   messageModal:    { width: "100%", maxWidth: 340, backgroundColor: "#141B2D", borderRadius: 18, padding: 22, borderWidth: 1, borderColor: "rgba(255,255,255,0.09)" },
   modalIcon:       { width: 54, height: 54, borderRadius: 15, alignItems: "center", justifyContent: "center", marginBottom: 16, borderWidth: 1 },

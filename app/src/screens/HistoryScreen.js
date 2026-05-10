@@ -15,6 +15,7 @@ const SCREEN_W = Dimensions.get("window").width;
 export default function HistoryScreen() {
   // Ini dipakai untuk pindah halaman.
   const navigation = useNavigation();
+  // State berikut menyimpan data, filter, mode pilih, dan tampilan tab statistik/riwayat.
   const [history, setHistory] = useState([]);
   const [filter, setFilter] = useState("Semua");
   const [search, setSearch] = useState("");
@@ -32,6 +33,7 @@ export default function HistoryScreen() {
 
   // Mengambil semua data riwayat yang tersimpan.
   const loadHistory = async () => {
+    // Data diambil dari backend melalui helper storage agar selalu sesuai akun yang login.
     const data = await getHistory();
     setHistory(data);
   };
@@ -43,14 +45,17 @@ export default function HistoryScreen() {
   }, [navigation]);
 
   const openConfirmModal = ({ title, message, confirmLabel = "Hapus", onConfirm }) => {
+    // Menyiapkan isi modal konfirmasi sebelum pengguna benar-benar menghapus data.
     setConfirmModal({ visible: true, title, message, confirmLabel, onConfirm });
   };
 
   const closeConfirmModal = () => {
+    // Menutup modal hapus tanpa mengeksekusi aksi apa pun.
     setConfirmModal(prev => ({ ...prev, visible: false, onConfirm: null }));
   };
 
   const executeConfirmAction = async () => {
+    // Menjalankan aksi yang sudah disimpan saat pengguna menekan tombol hapus.
     const action = confirmModal.onConfirm;
     closeConfirmModal();
     if (action) await action();
@@ -97,6 +102,7 @@ export default function HistoryScreen() {
   };
 
   const changeTab = (tab) => {
+    // Saat pindah ke tab statistik, mode pilih dimatikan agar tidak terbawa ke tab lain.
     setActiveTab(tab);
     if (tab !== "riwayat") {
       setSelectMode(false);
@@ -112,8 +118,8 @@ export default function HistoryScreen() {
     }
     try {
       const wsData = [
-        ["No", "Nama Pasien", "Tanggal", "Jenis Kelamin", "Usia", "Hasil", "Confidence (%)",
-         "Gejala", "Hemoglobin", "WBC", "Neutrofil", "Limfosit", "Eosinofil", "HCT/PCV", "MCH", "MCHC", "RDW-CV", "Platelet"],
+        ["No", "Nama Pasien", "Tanggal", "Jenis Kelamin", "Usia", "Hasil",
+         "Hemoglobin", "WBC", "Neutrofil", "Limfosit", "Eosinofil", "HCT/PCV", "MCH", "MCHC", "RDW-CV", "Platelet"],
         ...history.map((item, i) => [
           i + 1,
           item.patientName || "Pasien Anonim",
@@ -121,8 +127,6 @@ export default function HistoryScreen() {
           item.sex || "-",
           item.age || "-",
           item.result || "-",
-          item.confidence || "-",
-          Array.isArray(item.symptoms) && item.symptoms.length > 0 ? item.symptoms.join(", ") : "-",
           item.hemoglobin || "-",
           item.wbc || "-",
           item.neutrophils || "-",
@@ -137,6 +141,7 @@ export default function HistoryScreen() {
       ];
       const ws = XLSX.utils.aoa_to_sheet(wsData);
       const wb = XLSX.utils.book_new();
+      // Workbook Excel dibangun dari array 2D lalu ditulis ke file lokal sebelum dibagikan.
       XLSX.utils.book_append_sheet(wb, ws, "Riwayat");
       const wbout = XLSX.write(wb, { type: "base64", bookType: "xlsx" });
       const uri = FileSystem.documentDirectory + "riwayat_malaria.xlsx";
@@ -162,8 +167,6 @@ export default function HistoryScreen() {
   // Ringkasan jumlah data untuk tab statistik.
   const totalPos = history.filter(i => i.result?.toLowerCase().includes("pos")).length;
   const totalNeg = history.filter(i => i.result?.toLowerCase().includes("neg")).length;
-  const avgConf = history.length > 0 ? (history.reduce((s, i) => s + (parseFloat(i.confidence) || 0), 0) / history.length).toFixed(1) : 0;
-
   const pieData = [
     { name: "Positif", population: totalPos || 0, color: "#FF4F6B", legendFontColor: "#EEF2FF", legendFontSize: 12 },
     { name: "Negatif", population: totalNeg || 0, color: "#B39DDB", legendFontColor: "#EEF2FF", legendFontSize: 12 },
@@ -200,12 +203,14 @@ export default function HistoryScreen() {
   };
 
   return (
+    // View terluar menjadi wadah seluruh halaman riwayat dan statistik.
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <StatusBar
         barStyle={themeName === "dark" ? "light-content" : "dark-content"}
         backgroundColor={theme.background}
       />
 
+      {/* Header atas menampilkan judul halaman dan aksi cepat terkait riwayat. */}
       <View style={styles.topnav}>
         <TouchableOpacity style={styles.backBtn} onPress={() => { setSelectMode(false); setSelected([]); navigation.navigate("Main"); }}>
           <Ionicons name="arrow-back" size={20} color="#EEF2FF" />
@@ -284,6 +289,7 @@ export default function HistoryScreen() {
             <View style={styles.empty}>
               <Ionicons name="document-outline" size={64} color="#192035" />
               <Text style={styles.emptyText}>Belum ada riwayat pemeriksaan</Text>
+              {/* Tombol ini mengarahkan pengguna ke form saat belum ada data riwayat. */}
               <TouchableOpacity style={styles.btnStart} onPress={() => navigation.navigate("Form")}>
                 <Text style={styles.btnStartText}>Mulai Diagnosis Pertama</Text>
               </TouchableOpacity>
@@ -295,6 +301,7 @@ export default function HistoryScreen() {
               contentContainerStyle={{ padding: 20, paddingBottom: selectMode ? 100 : 80 }}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => {
+                // Data hasil dipakai untuk menentukan badge positif/negatif dan item terpilih.
                 const isPos = item.result === "Positive";
                 const realIndex = history.indexOf(item);
                 const isSelected = selected.includes(realIndex);
@@ -320,7 +327,6 @@ export default function HistoryScreen() {
                       <View style={[styles.badge, isPos ? styles.badgePos : styles.badgeNeg]}>
                         <Text style={[styles.badgeText, isPos ? styles.textPos : styles.textNeg]}>{isPos ? "Positif" : "Negatif"}</Text>
                       </View>
-                      <Text style={styles.confidence}>{item.confidence}%</Text>
                     </View>
                   </TouchableOpacity>
                 );
@@ -329,6 +335,7 @@ export default function HistoryScreen() {
           )}
 
           {selectMode && selected.length > 0 && (
+            // Tombol hapus tetap ditempel di bawah saat mode pilih aktif.
             <View style={styles.fixedBottom}>
               <TouchableOpacity style={styles.btnDelete} onPress={handleDeleteSelected}>
                 <Ionicons name="trash-outline" size={18} color="#EEF2FF" />
@@ -353,10 +360,6 @@ export default function HistoryScreen() {
               <Text style={[styles.statNum, { color: "#B39DDB" }]}>{totalNeg}</Text>
               <Text style={styles.statLabel}>Negatif</Text>
             </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statNum}>{avgConf}%</Text>
-              <Text style={styles.statLabel}>Rata-rata</Text>
-            </View>
           </View>
 
           {/* Tombol untuk export riwayat ke Excel. */}
@@ -372,7 +375,7 @@ export default function HistoryScreen() {
             </View>
           ) : (
             <>
-              {/* Pie Chart */}
+              {/* Pie chart menampilkan perbandingan hasil positif dan negatif. */}
               <View style={styles.chartCard}>
                 <Text style={styles.chartTitle}>Distribusi Hasil Diagnosis</Text>
                 <PieChart
@@ -387,7 +390,7 @@ export default function HistoryScreen() {
                 />
               </View>
 
-              {/* Bar Chart */}
+              {/* Bar chart menunjukkan jumlah diagnosis selama 7 hari terakhir. */}
               <View style={styles.chartCard}>
                 <Text style={styles.chartTitle}>Diagnosis 7 Hari Terakhir</Text>
                 <BarChart
@@ -406,6 +409,7 @@ export default function HistoryScreen() {
       )}
 
       {!selectMode && (
+        // Navigasi bawah hanya tampil saat pengguna tidak sedang memilih data untuk dihapus.
         <View style={styles.bottomNav}>
           <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Main")} activeOpacity={0.8}>
             <Ionicons name="home-outline" size={22} color="#7B87A6" />
@@ -432,6 +436,7 @@ export default function HistoryScreen() {
         animationType="fade"
         onRequestClose={closeConfirmModal}
       >
+        {/* Modal ini dipakai untuk semua konfirmasi hapus di halaman riwayat. */}
         <View style={styles.modalOverlay}>
           <View style={styles.confirmModal}>
             <View style={styles.modalIcon}>
@@ -456,21 +461,26 @@ export default function HistoryScreen() {
 }
 
 const styles = StyleSheet.create({
+  // Gaya dasar layar riwayat.
   container:        { flex: 1, backgroundColor: "#0A0F1E" },
+  // Gaya header atas dan tombol-tombol kecil di sekitarnya.
   topnav:           { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 52, paddingBottom: 14, paddingHorizontal: 20, backgroundColor: "#0F1628", borderBottomWidth: 1, borderBottomColor: "rgba(255,255,255,0.07)" },
   topnavTitle:      { fontSize: 16, fontWeight: "700", color: "#EEF2FF", flex: 1, textAlign: "center" },
   topnavRight:      { flexDirection: "row", alignItems: "center" },
   backBtn:          { width: 36, height: 36, borderRadius: 10, backgroundColor: "#141B2D", alignItems: "center", justifyContent: "center" },
+  // Gaya tab riwayat dan statistik.
   tabRow:           { flexDirection: "row", backgroundColor: "#0F1628", paddingHorizontal: 20, paddingBottom: 12, gap: 10 },
   tab:              { flex: 1, paddingVertical: 8, borderRadius: 20, backgroundColor: "#141B2D", alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.07)" },
   tabActive:        { backgroundColor: "rgba(179,157,219,0.15)", borderColor: "rgba(179,157,219,0.4)" },
   tabText:          { fontSize: 13, color: "#7B87A6", fontWeight: "600" },
   tabTextActive:    { color: "#B39DDB" },
+  // Gaya area filter dan pencarian.
   filterRow:        { flexDirection: "row", gap: 8, padding: 16, paddingHorizontal: 20, backgroundColor: "#0F1628" },
   filterTab:        { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: "#141B2D", borderWidth: 1, borderColor: "rgba(255,255,255,0.07)" },
   filterTabActive:  { backgroundColor: "rgba(179,157,219,0.1)", borderColor: "rgba(179,157,219,0.3)" },
   filterText:       { fontSize: 12, color: "#7B87A6", fontWeight: "500" },
   filterTextActive: { color: "#B39DDB", fontWeight: "700" },
+  // Gaya kartu data riwayat pasien.
   card:             { flexDirection: "row", alignItems: "center", backgroundColor: "#141B2D", borderRadius: 16, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: "rgba(255,255,255,0.07)" },
   cardSelected:     { borderColor: "#B39DDB", backgroundColor: "rgba(179,157,219,0.05)" },
   checkbox:         { marginRight: 10 },
@@ -487,11 +497,12 @@ const styles = StyleSheet.create({
   badgeText:        { fontSize: 11, fontWeight: "700" },
   textPos:          { color: "#FF4F6B" },
   textNeg:          { color: "#B39DDB" },
-  confidence:       { fontSize: 11, color: "#7B87A6" },
+  // Gaya state kosong dan form pencarian.
   empty:            { flex: 1, alignItems: "center", justifyContent: "center", paddingBottom: 80, paddingTop: 60 },
   emptyText:        { fontSize: 14, color: "#7B87A6", marginTop: 16, marginBottom: 24, textAlign: "center" },
   searchRow:        { flexDirection: "row", alignItems: "center", marginHorizontal: 20, marginBottom: 12, backgroundColor: "#141B2D", borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
   searchInput:      { flex: 1, paddingVertical: 10, color: "#EEF2FF", fontSize: 13 },
+  // Gaya tombol aksi utama di halaman riwayat.
   btnStart:         { backgroundColor: "#B39DDB", paddingHorizontal: 28, paddingVertical: 14, borderRadius: 12 },
   btnStartText:     { color: "#0A0F1E", fontWeight: "700", fontSize: 14 },
   fixedBottom:      { position: "absolute", bottom: 0, left: 0, right: 0, padding: 20, paddingBottom: 36, backgroundColor: "#0A0F1E", borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.07)" },
@@ -499,14 +510,17 @@ const styles = StyleSheet.create({
   btnDeleteText:    { fontSize: 15, fontWeight: "700", color: "#EEF2FF" },
   btnExport:        { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, backgroundColor: "#B39DDB", borderRadius: 14, padding: 14, marginBottom: 20 },
   btnExportText:    { fontSize: 14, fontWeight: "700", color: "#0A0F1E" },
+  // Gaya kartu statistik dan area grafik.
   statCard:         { flex: 1, backgroundColor: "#141B2D", borderRadius: 14, padding: 14, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.07)" },
   statNum:          { fontSize: 22, fontWeight: "800", color: "#EEF2FF" },
   statLabel:        { fontSize: 11, color: "#7B87A6", marginTop: 4 },
   chartCard:        { backgroundColor: "#141B2D", borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: "rgba(255,255,255,0.07)" },
   chartTitle:       { fontSize: 14, fontWeight: "700", color: "#EEF2FF", marginBottom: 16 },
+  // Gaya navigasi bawah.
   bottomNav:        { flexDirection: "row", backgroundColor: "#0F1628", borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.07)", paddingBottom: 24, paddingTop: 12 },
   navItem:          { flex: 1, alignItems: "center", gap: 4 },
   navLabel:         { fontSize: 11, color: "#7B87A6", fontWeight: "500" },
+  // Gaya modal konfirmasi hapus.
   modalOverlay:     { flex: 1, backgroundColor: "rgba(10,15,30,0.78)", alignItems: "center", justifyContent: "center", padding: 24 },
   confirmModal:     { width: "100%", maxWidth: 340, backgroundColor: "#141B2D", borderRadius: 18, padding: 22, borderWidth: 1, borderColor: "rgba(255,255,255,0.09)" },
   modalIcon:        { width: 52, height: 52, borderRadius: 14, backgroundColor: "rgba(255,79,107,0.1)", borderWidth: 1, borderColor: "rgba(255,79,107,0.24)", alignItems: "center", justifyContent: "center", marginBottom: 16 },
