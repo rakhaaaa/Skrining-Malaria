@@ -1,3 +1,4 @@
+// Mengimpor React serta createContext, useContext, dan useState utk membuat dan pakai sistem tema.
 import React, { createContext, useContext, useState } from 'react';
 
 // ThemeContext dipakai untuk membagikan tema ke banyak komponen sekaligus.

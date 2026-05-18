@@ -1,9 +1,16 @@
+// Mengimpor React, useEffect, dan useState utk buat komponen dan mengatur state atau jg efek saat halaman dibuka.
 import React, { useEffect, useState } from "react";
+// Mengimpor komponen2 React Native yg dipakai utk membangun tampilan halaman beranda.
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Image, Pressable, Modal } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+// Mengimpor ikon Ionicons utk menampilkan ikon di halaman.
+import { Ionicons } from "@expo/vector-icons"
+// Mengimpor useNavigation supaya halaman ini bisa berpindah ke halaman lain.
 import { useNavigation } from "@react-navigation/native";
+// Mengimpor fungsi getHistory utk ambil data riwayat pemeriksaan yg tersimpan.
 import { getHistory } from "../utils/storage";
+// Mengimpor fungsi checkHealth utk mengecek koneksi backend, dan logoutUser utk proses logout ke server.
 import { checkHealth, logoutUser } from "../utils/api";
+// Mengimpor fungsi clearSession dan getSession utk membaca dan menghapus data sesi login pengguna.
 import { clearSession, getSession } from "../utils/auth";
 
 export default function HomeScreen() {

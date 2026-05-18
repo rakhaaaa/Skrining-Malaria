@@ -1,5 +1,7 @@
+// Mengimpor registerRootComponent dari Expo utk daftarkn komponen utama aplikasi.
 import { registerRootComponent } from 'expo';
 
+// Mengimpor komponen App sbg komponen utama aplikasi.
 import App from './App';
 
 // registerRootComponent calls AppRegistry.registerComponent('main', () => App);

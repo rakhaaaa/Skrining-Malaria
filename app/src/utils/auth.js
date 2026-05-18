@@ -1,3 +1,4 @@
+// Mengimpor AsyncStorage utk simpan dan mengambil data secara lokal di perangkat.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // AUTH_KEY adalah nama key penyimpanan sesi login di memori lokal perangkat.

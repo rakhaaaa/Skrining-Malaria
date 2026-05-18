@@ -1,15 +1,24 @@
+// Mengimpor React, useEffect, dan useState utk buat komponen dan mengatur state atau jg efek saat halaman dibuka.
 import React, { useEffect, useState } from "react";
+// Mengimpor komponen React Native yg dipakai utk tampilan, input, modal, dan daftar data.
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, StatusBar, Alert, ScrollView, Dimensions, TextInput, Modal } from "react-native";
+// Mengimpor ikon Ionicons utk menampilkan ikon di halaman riwayat.
 import { Ionicons } from "@expo/vector-icons";
+// Mengimpor useNavigation supaya halaman ini bisa berpindah ke halaman lain.
 import { useNavigation } from "@react-navigation/native";
+// Mengimpor fungsi2 utk mengambil, menghapus, dan menyimpan riwayat pemeriksaan.
 import { getHistory, clearHistory, saveHistory } from "../utils/storage";
+// Mengimpor komponen grafik pie chart dan bar chart utk menampilkan statistik riwayat.
 import { PieChart, BarChart } from "react-native-chart-kit";
+// Mengimpor FileSystem utk membuat/menyimpan file hasil export.
 import * as FileSystem from "expo-file-system/legacy";
+// Mengimpor Sharing supaya file hasil export bisa dibagiin atau dibuka.
 import * as Sharing from "expo-sharing";
+// Mengimpor XLSX utk buat file Excel dari data riwayat.
 import * as XLSX from "xlsx";
+// Mengimpor useTheme utk mengambil warna atau tema yg sedang aktif.
 import { useTheme } from "../theme";
-
-// Lebar layar dipakai untuk menyesuaikan ukuran grafik.
+// Lebar layar dipakai utk menyesuaikan ukuran grafik.
 const SCREEN_W = Dimensions.get("window").width;
 
 export default function HistoryScreen() {

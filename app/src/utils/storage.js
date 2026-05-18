@@ -1,3 +1,4 @@
+// Mengimpor fungsi-fungsi API utk mengambil, menambah, menghapus, dan mengganti data screening.
 import { clearScreenings, createScreening, getScreenings, replaceScreenings } from "./api";
 
 export async function saveHistory(recordOrArray) {

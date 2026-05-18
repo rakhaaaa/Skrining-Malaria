@@ -1,7 +1,8 @@
+// Mengimpor fungsi getAuthToken utk ambil token login yg tersimpan.
 import { getAuthToken } from "./auth";
 
 // BASE_URL adalah alamat backend Flask yang dipakai aplikasi saat mengirim data.
-const BASE_URL = "http://192.168.110.247:5000";
+const BASE_URL = "http://192.168.1.31:5000";
 // REQUEST_TIMEOUT_MS membatasi lama request agar aplikasi tidak menunggu terlalu lama.
 const REQUEST_TIMEOUT_MS = 8000;
 
@@ -15,7 +16,7 @@ async function request(path, options = {}) {
     // Opsi auth menentukan apakah request harus mengirim token login atau tidak.
     const { auth, ...fetchOptions } = options;
     const token = auth ? await getAuthToken() : null;
-    // Header bawaan request digabung dengan token Bearer jika endpoint membutuhkan autentikasi.
+    // Header bawaan request digabung dengan token Bearer kalo endpoint membutuhkan autentikasi.
     const headers = {
       ...(fetchOptions.headers || {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

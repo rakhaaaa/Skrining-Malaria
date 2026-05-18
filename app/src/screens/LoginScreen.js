@@ -1,7 +1,12 @@
+// Mengimpor React dan useState utk buat komponen dan menyimpan state lokal.
 import React, { useState } from "react";
+// Mengimpor komponen2 React Native yg dipakai utk membangun tampilan halaman login dan register.
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, StatusBar, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Image, Modal } from "react-native";
+// Mengimpor ikon Ionicons utk menampilkan ikon pada halaman.
 import { Ionicons } from "@expo/vector-icons";
+// Mengimpor fungsi loginUser dan registerUser utk proses masuk dan daftar akun ke backend.
 import { loginUser, registerUser } from "../utils/api";
+// Mengimpor fungsi saveSession utk menyimpan data sesi login pengguna setelah berhasil masuk.
 import { saveSession } from "../utils/auth";
 
 export default function LoginScreen({ navigation }) {

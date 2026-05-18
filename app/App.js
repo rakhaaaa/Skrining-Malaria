@@ -1,13 +1,24 @@
+// Mengimpor React utk buat komponen utama aplikasi.
 import React from "react";
+// Mengimpor NavigationContainer sebagai wadah utama sistem navigasi aplikasi.
 import { NavigationContainer } from "@react-navigation/native";
+// Mengimpor createNativeStackNavigator utk mengatur perpindahan antar halaman dgn model stack.
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+// Mengimpor halaman splash yg tampil pas aplikasi pertama kali dibuka.
 import SplashScreen from "./src/screens/SplashScreen";
+// Mengimpor halaman login utk proses masuk pengguna.
 import LoginScreen from "./src/screens/LoginScreen";
+// Mengimpor halaman beranda utama aplikasi.
 import HomeScreen from "./src/screens/HomeScreen";
+// Mengimpor halaman form utk input data pasien dan hasil pemeriksaan.
 import FormScreen from "./src/screens/FormScreen";
+// Mengimpor halaman hasil utk menampilkan output prediksi.
 import ResultScreen from "./src/screens/ResultScreen";
+// Mengimpor halaman riwayat utk lihat data pemeriksaan sebelumnya.
 import HistoryScreen from "./src/screens/HistoryScreen";
+// Mengimpor halaman tentang yg isi nya informasi aplikasi.
 import AboutScreen from "./src/screens/AboutScreen";
+// Mengimpor ThemeProvider supaya tema aplikasi bisa dipakai di semua halaman.
 import { ThemeProvider } from "./src/theme";
 
 // Stack dipakai untuk mengatur perpindahan antar halaman aplikasi.

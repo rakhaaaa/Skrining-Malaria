@@ -1,7 +1,12 @@
+// Mengimpor React, useEffect, dan useRef utk membuat komponen serta menjalankan efek dan animasi.
 import React, { useEffect, useRef } from "react";
+// Mengimpor komponen2 React Native yg dipakai utk tampilan splash screen dan animasi.
 import { View, Text, StyleSheet, StatusBar, Animated, TouchableOpacity, Image } from "react-native";
+// Mengimpor useNavigation suoaya splash screen bisa berpindah ke halaman lain.
 import { useNavigation } from "@react-navigation/native";
+// Mengimpor ikon Ionicons utk menampilkan ikon pada halaman.
 import { Ionicons } from "@expo/vector-icons";
+// Mengimpor getSession utk mengecek apakah pengguna sudah punya sesi login atau belum.
 import { getSession } from "../utils/auth";
 
 export default function SplashScreen() {

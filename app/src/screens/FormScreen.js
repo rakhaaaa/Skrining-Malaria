@@ -1,9 +1,16 @@
+// Mengimpor React dan useState utk membuat komponen dan menyimpan state lokal.
 import React, { useState } from "react";
+// Mengimpor komponen React Native yg dipakai utk membangun tampilan form.
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, StatusBar, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from "react-native";
+// Mengimpor ikon Ionicons utk tampilin ikon pada halaman.
 import { Ionicons } from "@expo/vector-icons";
+// Mengimpor useNavigation biar halaman ini bisa swap ke halaman lain.
 import { useNavigation } from "@react-navigation/native";
+// Mengimpor fungsi predictMalaria utk mengirim data ke backend dan mendapatkan hasil prediksi.
 import { predictMalaria } from "../utils/api";
+// Mengimpor fungsi saveHistory utk menyimpan hasil pemeriksaan ke riwayat lokal.
 import { saveHistory } from "../utils/storage";
+// Mengimpor useTheme utk ngambil warna/tema yg aktif.
 import { useTheme } from "../theme";
 
 // Daftar semua input yang dipakai di form diagnosis.

@@ -1,13 +1,24 @@
+# Mengimpor Flask dan beberapa fungsi bawaan utk buat server, menerima request, mengirim response JSON, dan menyimpan data sementara per request.
 from flask import Flask, request, jsonify, g
+# Mengimpor CORS supaya backend bisa diakses dari aplikasi frontend yang berbeda origin.
 from flask_cors import CORS
+# Mengimpor joblib utk memuat file model machine learning yg sudah dilatih.
 import joblib
+# Mengimpor os utk kebutuhan akses path atau konfigurasi dari sistem operasi.
 import os
+# Mengimpor pandas utk membaca, mengolah, dan menyusun data sebelum diproses model.
 import pandas as pd
+# Mengimpor pymysql utk hubungin backend Flask ke database MySQL.
 import pymysql
+# Mengimpor DictCursor supaya hasil query database dikembalikan dalam bentuk dictionary.
 from pymysql.cursors import DictCursor
+# Mengimpor secrets utk buat token acak yang aman.
 import secrets
+# Mengimpor datetime dan timedelta utk mengatur waktu pembuatan dan masa berlaku token atau data tertentu.
 from datetime import datetime, timedelta
+# Mengimpor wraps utk buat decorator tanpa menghilangkan informasi fungsi aslinya.
 from functools import wraps
+# Mengimpor fungsi utk buat hash password dan mengecek password saat login.
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Membuat aplikasi Flask dan mengizinkan frontend mengakses backend.
