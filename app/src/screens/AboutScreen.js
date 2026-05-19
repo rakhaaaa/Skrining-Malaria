@@ -1,12 +1,7 @@
-// Mengimpor React dan useState untuk membuat komponen/menyimpan state lokal.
 import React, { useState } from "react";
-// Mengimpor komponen UI dari React Native yg dipakai di AboutScreen.
 import { View, Text, StyleSheet, ScrollView, StatusBar, TouchableOpacity } from "react-native";
-// Mengimpor ikon Ionicons utk menampilkan ikon di tampilan aplikasi.
 import { Ionicons } from "@expo/vector-icons";
-// Mengimpor useNavigation agar halaman ini bisa berpindah ke halaman yg lain.
 import { useNavigation } from "@react-navigation/native";
-// Mengimpor useTheme utk mengambil warna/tema yang sdg aktif.
 import { useTheme } from "../theme";
 
 export default function AboutScreen() {

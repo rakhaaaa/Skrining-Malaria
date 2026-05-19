@@ -1,16 +1,9 @@
-// Mengimpor React utk buat komponen halaman hasil.
 import React from "react";
-// Mengimpor komponen2 React Native yg dipakai utk menampilkan hasil, tombol, modal, dan area scroll.
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Platform, Modal } from "react-native";
-// Mengimpor ikon Ionicons utk menampilkan ikon pada halaman hasil.
 import { Ionicons } from "@expo/vector-icons";
-// Mengimpor useNavigation utk pindah halaman, dan useRoute utk mengambil data yg dikirim ke halaman ini.
 import { useNavigation, useRoute } from "@react-navigation/native";
-// Mengimpor Print utk buat file PDF dari hasil pemeriksaan.
 import * as Print from "expo-print";
-// Mengimpor FileSystem utk menyimpan file PDF ke penyimpanan perangkat.
 import * as FileSystem from "expo-file-system/legacy";
-// Mengimpor Sharing agar file hasil PDF bisa dibagikan atau dibuka.
 import * as Sharing from "expo-sharing";
 
 export default function ResultScreen() {

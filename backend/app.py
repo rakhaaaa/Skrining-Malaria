@@ -1,4 +1,4 @@
-# Mengimpor Flask dan beberapa fungsi bawaan utk buat server, menerima request, mengirim response JSON, dan menyimpan data sementara per request.
+# utk buat server, menerima request, mengirim response JSON, dan menyimpan data sementara per request.
 from flask import Flask, request, jsonify, g
 # Mengimpor CORS supaya backend bisa diakses dari aplikasi frontend yang berbeda origin.
 from flask_cors import CORS
