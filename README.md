@@ -1,5 +1,5 @@
 # MalariaCheck - Aplikasi Skrining Malaria
-Rakha Naufal Sujana - NPM 535220006 - Universitas Tarumanagara
+Rakha Naufal Sujana
 
 ## LANGKAH 1 - Jalankan Backend (Flask)
 
