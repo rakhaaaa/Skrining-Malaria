@@ -124,6 +124,7 @@ return (
           {renderQuickAction({ label: "Diagnosis Baru", icon: "flask-outline", target: "Form" })}
           {renderQuickAction({ label: "Riwayat", icon: "document-text-outline", target: "History" })}
           {renderQuickAction({ label: "Tentang", icon: "information-circle-outline", target: "About" })}
+          {renderQuickAction({ label: "Panduan", icon: "book-outline", target: "UserGuide" })}
         </View>
 
         {/* Bagian ini mengambil maksimal tiga data terakhir untuk ditampilkan sebagai ringkasan. */}
@@ -243,11 +244,11 @@ const styles = StyleSheet.create({
   sectionHeader:  { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, marginBottom: 12 },
   sectionTitle:   { fontSize: 15, fontWeight: "700", color: "#EEF2FF", paddingHorizontal: 20, marginBottom: 12 },
   sectionLink:    { fontSize: 13, color: "#B39DDB" },
-  quickActions:   { flexDirection: "row", gap: 12, paddingHorizontal: 20, marginBottom: 24 },
-  quickBtn:       { flex: 1, backgroundColor: "#141B2D", borderRadius: 16, padding: 16, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.07)" },
+  quickActions:   { flexDirection: "row", flexWrap: "wrap", gap: 12, paddingHorizontal: 20, marginBottom: 24 },
+  quickBtn:       { width: "48%", backgroundColor: "#141B2D", borderRadius: 16, padding: 16, alignItems: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.07)" },
   quickBtnActive: { borderColor: "rgba(179,157,219,0.3)", backgroundColor: "rgba(179,157,219,0.05)" },
   quickIcon:      { fontSize: 28, marginBottom: 8 },
-  quickLabel:     { fontSize: 12, color: "#EEF2FF", fontWeight: "600" },
+  quickLabel:     { fontSize: 12, color: "#EEF2FF", fontWeight: "600", textAlign: "center" },
 
   // Gaya daftar riwayat terbaru.
   histItem:       { flexDirection: "row", alignItems: "center", backgroundColor: "#141B2D", marginHorizontal: 20, marginBottom: 10, borderRadius: 16, padding: 14, borderWidth: 1, borderColor: "rgba(255,255,255,0.07)" },

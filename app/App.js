@@ -18,6 +18,8 @@ import ResultScreen from "./src/screens/ResultScreen";
 import HistoryScreen from "./src/screens/HistoryScreen";
 // Mengimpor halaman tentang yg isi nya informasi aplikasi.
 import AboutScreen from "./src/screens/AboutScreen";
+// Mengimpor halaman panduan pengguna untuk membantu pemakaian aplikasi.
+import UserGuideScreen from "./src/screens/UserGuideScreen";
 // Mengimpor ThemeProvider supaya tema aplikasi bisa dipakai di semua halaman.
 import { ThemeProvider } from "./src/theme";
 
@@ -55,6 +57,9 @@ export default function App() {
 
           {/* Halaman yang menjelaskan informasi tentang aplikasi. */}
           <Stack.Screen name="About" component={AboutScreen} />
+
+          {/* Halaman panduan penggunaan aplikasi bagi tenaga kesehatan. */}
+          <Stack.Screen name="UserGuide" component={UserGuideScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </ThemeProvider>
